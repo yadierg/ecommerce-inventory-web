@@ -1,0 +1,118 @@
+<div class="page">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Inventario (Stock)</h1>
+      <p class="page-subtitle">Controla las existencias por almacén</p>
+    </div>
+    <div class="header-actions">
+      <button mat-stroked-button color="primary" routerLink="/stocks/transfer">
+        <mat-icon>swap_horiz</mat-icon>
+        Transferir Stock
+      </button>
+    </div>
+  </div>
+
+  <div class="table-card">
+    <!-- Toolbar / Filtros -->
+    <div class="toolbar">
+      <div class="search-box">
+        <mat-icon>search</mat-icon>
+        <input type="text" placeholder="Buscar producto..." (keyup)="applyFilter($event)" />
+      </div>
+
+      <div class="filters">
+        <mat-form-field appearance="outline" class="filter-field">
+          <mat-label>Almacén</mat-label>
+          <mat-select [formControl]="warehouseFilter">
+            <mat-option [value]="null">Todos</mat-option>
+            @for (w of warehouses(); track w.id) {
+              <mat-option [value]="w.id">{{ w.name }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="filter-field">
+          <mat-label>Estado</mat-label>
+          <mat-select [formControl]="statusFilter">
+            <mat-option value="all">Todos</mat-option>
+            <mat-option value="low">Stock Bajo</mat-option>
+            <mat-option value="out">Agotado</mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+    </div>
+
+    @if (loading()) {
+      <div class="spinner-wrap"><mat-spinner diameter="40" /></div>
+    } @else if (dataSource.data.length === 0) {
+      <div class="empty">
+        <mat-icon>inventory_2</mat-icon>
+        <h3>No hay registros de stock</h3>
+        <p>Los productos aparecerán aquí cuando se registren entradas.</p>
+      </div>
+    } @else {
+      <table mat-table [dataSource]="dataSource" matSort class="full-width">
+        
+        <ng-container matColumnDef="product">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>Producto</th>
+          <td mat-cell *matCellDef="let s">
+            <div class="product-cell">
+              <strong>{{ s.product?.name || 'Producto Desconocido' }}</strong>
+              <small>SKU: {{ s.product?.sku || s.productId.slice(0, 8) }}</small>
+            </div>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="warehouse">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>Almacén</th>
+          <td mat-cell *matCellDef="let s">
+            <span class="warehouse-badge">{{ s.warehouse?.name || '—' }}</span>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="quantity">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header class="text-right">Cantidad</th>
+          <td mat-cell *matCellDef="let s" class="text-right">
+            <strong class="qty-value" [ngClass]="getStatus(s)">
+              {{ s.quantity | number }}
+            </strong>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="minStock">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header class="text-right">Mínimo</th>
+          <td mat-cell *matCellDef="let s" class="text-right text-muted">
+            {{ s.minStock ? (s.minStock | number) : '—' }}
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="status">
+          <th mat-header-cell *matHeaderCellDef>Estado</th>
+          <td mat-cell *matCellDef="let s">
+            <mat-chip [ngClass]="'chip-' + getStatus(s)">
+              @switch (getStatus(s)) {
+                @case ('out') { Agotado }
+                @case ('low') { Stock Bajo }
+                @default { Disponible }
+              }
+            </mat-chip>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="actions">
+          <th mat-header-cell *matHeaderCellDef class="text-right">Acciones</th>
+          <td mat-cell *matCellDef="let s" class="text-right">
+            <button mat-icon-button color="primary" (click)="goToAdjust(s)" matTooltip="Ajustar stock">
+              <mat-icon>tune</mat-icon>
+            </button>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="columns"></tr>
+        <tr mat-row *matRowDef="let row; columns: columns"></tr>
+      </table>
+
+      <mat-paginator [pageSizeOptions]="[10, 25, 50]" showFirstLastButtons></mat-paginator>
+    }
+  </div>
+</div>

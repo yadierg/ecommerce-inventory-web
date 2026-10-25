@@ -1,0 +1,104 @@
+<div class="page">
+  <div class="page-header">
+    <a mat-icon-button routerLink="/stocks" matTooltip="Volver a la lista">
+      <mat-icon>arrow_back</mat-icon>
+    </a>
+    <div>
+      <h1 class="page-title">Ajuste de Stock</h1>
+      <p class="page-subtitle">Registra una entrada o salida manual</p>
+    </div>
+  </div>
+
+  @if (loading()) {
+    <div class="spinner-wrap"><mat-spinner diameter="48" /></div>
+  } @else if (stock(); as s) {
+    
+    <!-- Info del Stock Actual -->
+    <mat-card class="info-card">
+      <mat-card-content>
+        <div class="info-grid">
+          <div class="info-item">
+            <span class="label">Producto</span>
+            <span class="value">{{ s.product?.name || s.productId }}</span>
+          </div>
+          <div class="info-item">
+            <span class="label">Almacén</span>
+            <span class="value">{{ s.warehouse?.name || '—' }}</span>
+          </div>
+          <div class="info-item">
+            <span class="label">Stock Actual</span>
+            <span class="value highlight">{{ s.quantity | number }} uds.</span>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Formulario de Ajuste -->
+    <mat-card class="form-card">
+      <mat-card-content>
+        <form [formGroup]="form" (ngSubmit)="onSubmit()">
+          
+          <div class="radio-group">
+            <mat-radio-group formControlName="type" color="primary">
+              <mat-radio-button value="add">
+                <div class="radio-label">
+                  <mat-icon class="green">add_circle</mat-icon>
+                  <span>Entrada (Sumar al stock)</span>
+                </div>
+              </mat-radio-button>
+              <mat-radio-button value="remove">
+                <div class="radio-label">
+                  <mat-icon class="red">remove_circle</mat-icon>
+                  <span>Salida (Restar del stock)</span>
+                </div>
+              </mat-radio-button>
+            </mat-radio-group>
+          </div>
+
+          <div class="grid-2">
+            <mat-form-field appearance="outline">
+              <mat-label>Cantidad *</mat-label>
+              <input matInput type="number" formControlName="quantity" min="1" />
+              <mat-icon matSuffix>numbers</mat-icon>
+              @if (form.get('quantity')?.invalid && form.get('quantity')?.touched) {
+                <mat-error>Ingresa una cantidad válida (mínimo 1)</mat-error>
+              }
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Motivo *</mat-label>
+              <mat-select formControlName="reason">
+                <mat-option value="purchase">Compra a proveedor</mat-option>
+                <mat-option value="sale">Venta / Despacho</mat-option>
+                <mat-option value="damage">Merma / Daño</mat-option>
+                <mat-option value="return">Devolución</mat-option>
+                <mat-option value="correction">Corrección de inventario</mat-option>
+                <mat-option value="other">Otro</mat-option>
+              </mat-select>
+              @if (form.get('reason')?.invalid && form.get('reason')?.touched) {
+                <mat-error>Selecciona un motivo</mat-error>
+              }
+            </mat-form-field>
+          </div>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Notas adicionales</mat-label>
+            <textarea matInput formControlName="notes" rows="3" placeholder="Detalles sobre este ajuste..."></textarea>
+          </mat-form-field>
+
+          <div class="form-actions">
+            <button mat-button type="button" routerLink="/stocks">Cancelar</button>
+            <button mat-raised-button color="primary" type="submit" [disabled]="form.invalid || saving()">
+              @if (saving()) {
+                <mat-spinner diameter="20" />
+              } @else {
+                Confirmar Ajuste
+              }
+            </button>
+          </div>
+
+        </form>
+      </mat-card-content>
+    </mat-card>
+  }
+</div>

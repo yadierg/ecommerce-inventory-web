@@ -1,0 +1,27 @@
+<aside class="sidebar">
+  <!-- Brand con SVGs -->
+  <div class="brand">
+    <!-- <img src="logo.svg" alt="Instelec Logo" class="brand-logo" /> -->
+    <img src="nombre.svg" alt="Instelec" class="brand-name" />
+  </div>
+
+  <nav class="nav">
+    <p class="nav-section-label">MENÚ PRINCIPAL</p>
+    @for (item of navItems; track item.route) {
+      <a [routerLink]="item.route" routerLinkActive="active" class="nav-item">
+        <mat-icon class="nav-icon">{{ item.icon }}</mat-icon>
+        <span class="nav-label">{{ item.label }}</span>
+      </a>
+    }
+  </nav>
+
+  <div class="sidebar-footer">
+    <div class="footer-card">
+      <mat-icon class="footer-icon">support_agent</mat-icon>
+      <div>
+        <strong>Soporte</strong>
+        <small>¿Necesitas ayuda?</small>
+      </div>
+    </div>
+  </div>
+</aside>

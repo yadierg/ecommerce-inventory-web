@@ -1,0 +1,104 @@
+<div class="page">
+  <div class="page-header">
+    <a mat-icon-button routerLink="/warehouses" matTooltip="Volver a la lista">
+      <mat-icon>arrow_back</mat-icon>
+    </a>
+    <div class="title-wrap">
+      <h1 class="page-title">{{ warehouse()?.name || 'Almacén' }}</h1>
+      @if (warehouse(); as w) {
+        <div class="chips">
+          <mat-chip [class.chip-active]="w.isActive" [class.chip-inactive]="!w.isActive">
+            {{ w.isActive ? 'Activo' : 'Inactivo' }}
+          </mat-chip>
+          @if (w.isDefault) {
+            <mat-chip class="chip-default">Predeterminado</mat-chip>
+          }
+        </div>
+      }
+    </div>
+    <div class="spacer"></div>
+    @if (warehouse()) {
+      <a mat-raised-button color="primary" [routerLink]="['/warehouses', warehouse()!.id, 'edit']">
+        <mat-icon>edit</mat-icon> Editar
+      </a>
+    }
+  </div>
+
+  @if (loading()) {
+    <div class="spinner-wrap"><mat-spinner diameter="48" /></div>
+  } @else if (warehouse(); as w) {
+    <div class="detail-grid">
+      
+      <!-- Columna Principal -->
+      <mat-card class="detail-card">
+        <mat-card-header>
+          <mat-card-title>Información General</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="info-list">
+            <div class="info-row">
+              <span class="label">Código</span>
+              <span class="value"><span class="code-badge">{{ w.code }}</span></span>
+            </div>
+            <mat-divider />
+            <div class="info-row">
+              <span class="label">Descripción</span>
+              <span class="value">{{ w.description || '—' }}</span>
+            </div>
+            <mat-divider />
+            <div class="info-row">
+              <span class="label">Capacidad</span>
+              <span class="value">{{ w.capacity ? (w.capacity | number) + ' unidades' : '—' }}</span>
+            </div>
+            <mat-divider />
+            <div class="info-row">
+              <span class="label">Notas</span>
+              <span class="value">{{ w.notes || '—' }}</span>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Ubicación -->
+      <mat-card class="detail-card">
+        <mat-card-header>
+          <mat-card-title>Ubicación y Contacto</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="info-list">
+            <div class="info-row">
+              <span class="label">Dirección</span>
+              <span class="value">{{ w.address || '—' }}</span>
+            </div>
+            <mat-divider />
+            <div class="info-row">
+              <span class="label">Ciudad / Estado</span>
+              <span class="value">{{ w.city || '—' }} {{ w.state ? ', ' + w.state : '' }}</span>
+            </div>
+            <mat-divider />
+            <div class="info-row">
+              <span class="label">País</span>
+              <span class="value">{{ w.country || '—' }}</span>
+            </div>
+            <mat-divider />
+            <div class="info-row">
+              <span class="label">Encargado</span>
+              <span class="value">{{ w.managerName || '—' }}</span>
+            </div>
+            <mat-divider />
+            <div class="info-row">
+              <span class="label">Teléfono</span>
+              <span class="value">{{ w.phone || '—' }}</span>
+            </div>
+            <mat-divider />
+            <div class="info-row">
+              <span class="label">Email</span>
+              <span class="value">{{ w.email || '—' }}</span>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+    </div>
+  }
+</div>

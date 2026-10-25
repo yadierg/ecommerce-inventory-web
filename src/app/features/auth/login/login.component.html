@@ -1,0 +1,35 @@
+<div class="login-container">
+  <mat-card class="login-card">
+    <mat-card-content>
+      <div class="brand">
+        <img src="logo.svg" alt="Instelec Logo" class="brand-logo" />
+        <img src="nombre.svg" alt="Instelec" class="brand-name" />
+        <p>Ingresa tus credenciales al panel de inventario</p>
+      </div>
+
+      <form (ngSubmit)="onSubmit()">
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Email</mat-label>
+          <input matInput type="email" [(ngModel)]="email" name="email" required autocomplete="email" />
+          <mat-icon matSuffix>email</mat-icon>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Contraseña</mat-label>
+          <input matInput [type]="hidePassword() ? 'password' : 'text'" [(ngModel)]="password" name="password" required autocomplete="current-password" />
+          <button mat-icon-button matSuffix type="button" (click)="hidePassword.set(!hidePassword())">
+            <mat-icon>{{ hidePassword() ? 'visibility_off' : 'visibility' }}</mat-icon>
+          </button>
+        </mat-form-field>
+
+        <button mat-raised-button type="submit" class="full-width submit-btn" [disabled]="loading()">
+          @if (loading()) {
+            <mat-spinner diameter="20" />
+          } @else {
+            Iniciar sesión
+          }
+        </button>
+      </form>
+    </mat-card-content>
+  </mat-card>
+</div>

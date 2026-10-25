@@ -1,0 +1,62 @@
+.dialog-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 24px 24px 0;
+}
+
+.icon-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.icon-wrapper mat-icon {
+  font-size: 24px;
+  width: 24px;
+  height: 24px;
+}
+
+/* Variantes de color */
+.dialog-header.warn .icon-wrapper {
+  background: #fee2e2;
+  color: #ef4444;
+}
+
+.dialog-header.primary .icon-wrapper {
+  background: #dbeafe;
+  color: #3b82f6;
+}
+
+.dialog-header.accent .icon-wrapper {
+  background: #fef3c7;
+  color: #f59e0b;
+}
+
+h2 {
+  margin: 0 !important;
+  font-size: 18px !important;
+  font-weight: 600 !important;
+  color: var(--text-primary);
+}
+
+mat-dialog-content {
+  padding-top: 16px !important;
+  padding-bottom: 24px !important;
+}
+
+mat-dialog-content p {
+  color: var(--text-secondary);
+  font-size: 14px;
+  line-height: 1.6;
+  margin: 0;
+}
+
+mat-dialog-actions {
+  padding: 0 24px 24px !important;
+  gap: 8px;
+}

@@ -1,0 +1,62 @@
+<div class="page">
+  <div class="page-header">
+    <a mat-icon-button [routerLink]="['/purchase-orders', id]" matTooltip="Volver al detalle">
+      <mat-icon>arrow_back</mat-icon>
+    </a>
+    <div>
+      <h1 class="page-title">Recibir Mercancía</h1>
+      <p class="page-subtitle">Orden {{ po()?.orderNumber }}</p>
+    </div>
+  </div>
+
+  @if (loading()) {
+    <div class="spinner-wrap"><mat-spinner diameter="48" /></div>
+  } @else {
+    <form [formGroup]="form" (ngSubmit)="onSubmit()">
+      <mat-card class="form-card">
+        <mat-card-header>
+          <mat-card-title>Productos a Recibir</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <p class="hint">Ingresa la cantidad física que llegó. Si llegó todo, deja el número máximo.</p>
+          
+          <div formArrayName="items" class="items-list">
+            @for (item of items.controls; track $index; let i = $index) {
+              <div [formGroupName]="i" class="item-row">
+                <div class="item-info">
+                  <strong>{{ po()?.items?.[i]?.productName || po()?.items?.[i]?.productId }}</strong>
+                  <small>Pedido: {{ po()?.items?.[i]?.quantity }} | Recibido: {{ po()?.items?.[i]?.receivedQuantity || 0 }}</small>
+                </div>
+
+                <mat-form-field appearance="outline" class="qty-field">
+                  <mat-label>Cant. a recibir</mat-label>
+                  <input matInput type="number" formControlName="quantity" min="0" />
+                </mat-form-field>
+              </div>
+            }
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="form-card">
+        <mat-card-content>
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Notas de recepción</mat-label>
+            <textarea matInput formControlName="notes" rows="2" placeholder="Ej. Caja 2 llegó abollada..."></textarea>
+          </mat-form-field>
+        </mat-card-content>
+      </mat-card>
+
+      <div class="form-actions">
+        <button mat-button type="button" [routerLink]="['/purchase-orders', id]">Cancelar</button>
+        <button mat-raised-button color="primary" type="submit" [disabled]="form.invalid || saving()">
+          @if (saving()) {
+            <mat-spinner diameter="20" />
+          } @else {
+            Confirmar Recepción
+          }
+        </button>
+      </div>
+    </form>
+  }
+</div>

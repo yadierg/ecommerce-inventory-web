@@ -1,0 +1,118 @@
+<div class="page">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Movimientos</h1>
+      <p class="page-subtitle">Historial de entradas, salidas y ajustes del inventario</p>
+    </div>
+  </div>
+
+  <div class="table-card">
+    <!-- Toolbar / Filtros -->
+    <div class="toolbar">
+      <div class="search-box">
+        <mat-icon>search</mat-icon>
+        <input type="text" placeholder="Buscar en resultados..." (keyup)="applyFilter($event)" />
+      </div>
+
+      <div class="filters">
+        <mat-form-field appearance="outline" class="filter-field">
+          <mat-label>Almacén</mat-label>
+          <mat-select [formControl]="warehouseFilter">
+            <mat-option [value]="null">Todos</mat-option>
+            @for (w of warehouses(); track w.id) {
+              <mat-option [value]="w.id">{{ w.name }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="filter-field">
+          <mat-label>Tipo</mat-label>
+          <mat-select [formControl]="typeFilter">
+            <mat-option value="all">Todos</mat-option>
+            <mat-option value="in">Entrada</mat-option>
+            <mat-option value="out">Salida</mat-option>
+            <mat-option value="adjustment">Ajuste</mat-option>
+            <mat-option value="transfer_in">Transf. Entrada</mat-option>
+            <mat-option value="transfer_out">Transf. Salida</mat-option>
+            <mat-option value="purchase_receive">Recep. Compra</mat-option>
+            <mat-option value="sale">Venta</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <button mat-icon-button class="clear-btn" (click)="clearFilters()" matTooltip="Limpiar filtros">
+          <mat-icon>filter_alt_off</mat-icon>
+        </button>
+      </div>
+    </div>
+
+    @if (loading()) {
+      <div class="spinner-wrap"><mat-spinner diameter="40" /></div>
+    } @else if (dataSource.data.length === 0) {
+      <div class="empty">
+        <mat-icon>inbox</mat-icon>
+        <h3>No hay movimientos registrados</h3>
+        <p>Los movimientos aparecerán aquí cuando realices ajustes o transferencias.</p>
+      </div>
+    } @else {
+      <table mat-table [dataSource]="dataSource" matSort class="full-width">
+        
+        <ng-container matColumnDef="date">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>Fecha</th>
+          <td mat-cell *matCellDef="let m">
+            <div class="date-cell">
+              <strong>{{ m.createdAt | date: 'dd MMM yyyy' }}</strong>
+              <small>{{ m.createdAt | date: 'HH:mm' }}</small>
+            </div>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="type">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>Tipo</th>
+          <td mat-cell *matCellDef="let m">
+            <span class="type-badge" [ngClass]="m.type">
+              {{ typeLabel(m.type) }}
+            </span>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="product">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>Producto</th>
+          <td mat-cell *matCellDef="let m">
+            <div class="product-cell">
+              <strong>{{ m.product?.name || 'Producto Desconocido' }}</strong>
+              <small>SKU: {{ m.product?.sku || m.productId.slice(0, 8) }}</small>
+            </div>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="warehouse">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>Almacén</th>
+          <td mat-cell *matCellDef="let m">
+            <span class="warehouse-badge">{{ m.warehouse?.name || '—' }}</span>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="quantity">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header class="text-right">Cantidad</th>
+          <td mat-cell *matCellDef="let m" class="text-right">
+            <strong class="qty-value" [class.pos]="m.quantity > 0" [class.neg]="m.quantity < 0">
+              {{ m.quantity > 0 ? '+' : '' }}{{ m.quantity | number }}
+            </strong>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="reason">
+          <th mat-header-cell *matHeaderCellDef>Motivo</th>
+          <td mat-cell *matCellDef="let m">
+            <span class="reason-text">{{ m.reason || '—' }}</span>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="columns"></tr>
+        <tr mat-row *matRowDef="let row; columns: columns"></tr>
+      </table>
+
+      <mat-paginator [pageSizeOptions]="[10, 25, 50]" showFirstLastButtons></mat-paginator>
+    }
+  </div>
+</div>

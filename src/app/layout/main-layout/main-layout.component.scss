@@ -1,0 +1,27 @@
+.layout {
+  display: flex;
+  height: 100vh; /* Ocupa exactamente el alto de la ventana */
+  width: 100vw;
+  overflow: hidden;
+}
+
+.sidebar-wrapper {
+  flex-shrink: 0;
+  width: 260px;
+  height: 100%;
+  z-index: 10;
+}
+
+.content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0; /* Previene que el contenido desborde el flexbox */
+  background-color: var(--bg-app, #f5f7fa);
+}
+
+.main {
+  flex: 1;
+  overflow-y: auto; /* Scroll solo en el área de contenido */
+  padding: 24px;
+}

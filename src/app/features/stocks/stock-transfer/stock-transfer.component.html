@@ -1,0 +1,88 @@
+<div class="page">
+  <div class="page-header">
+    <a mat-icon-button routerLink="/stocks" matTooltip="Volver a la lista">
+      <mat-icon>arrow_back</mat-icon>
+    </a>
+    <div>
+      <h1 class="page-title">Transferencia de Stock</h1>
+      <p class="page-subtitle">Mueve productos entre almacenes</p>
+    </div>
+  </div>
+
+  @if (loading()) {
+    <div class="spinner-wrap"><mat-spinner diameter="48" /></div>
+  } @else {
+    <mat-card class="form-card">
+      <mat-card-content>
+        <form [formGroup]="form" (ngSubmit)="onSubmit()">
+          
+          <div class="transfer-visual">
+            <mat-icon class="transfer-icon">swap_horiz</mat-icon>
+          </div>
+
+          <div class="grid-2">
+            <mat-form-field appearance="outline">
+              <mat-label>Almacén Origen *</mat-label>
+              <mat-select formControlName="fromWarehouseId">
+                @for (w of warehouses(); track w.id) {
+                  <mat-option [value]="w.id">{{ w.name }}</mat-option>
+                }
+              </mat-select>
+              @if (form.get('fromWarehouseId')?.invalid && form.get('fromWarehouseId')?.touched) {
+                <mat-error>Requerido</mat-error>
+              }
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Almacén Destino *</mat-label>
+              <mat-select formControlName="toWarehouseId">
+                @for (w of warehouses(); track w.id) {
+                  <mat-option [value]="w.id">{{ w.name }}</mat-option>
+                }
+              </mat-select>
+              @if (form.get('toWarehouseId')?.invalid && form.get('toWarehouseId')?.touched) {
+                <mat-error>Requerido</mat-error>
+              }
+            </mat-form-field>
+          </div>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>ID del Producto *</mat-label>
+            <input matInput formControlName="productId" placeholder="Ej. uuid-del-producto" />
+            <mat-icon matSuffix>qr_code</mat-icon>
+            @if (form.get('productId')?.invalid && form.get('productId')?.touched) {
+              <mat-error>El ID del producto es requerido</mat-error>
+            }
+            <mat-hint>Nota: En el futuro esto será un buscador de productos.</mat-hint>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Cantidad a transferir *</mat-label>
+            <input matInput type="number" formControlName="quantity" min="1" />
+            <mat-icon matSuffix>numbers</mat-icon>
+            @if (form.get('quantity')?.invalid && form.get('quantity')?.touched) {
+              <mat-error>Ingresa una cantidad válida (mínimo 1)</mat-error>
+            }
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Notas / Referencia</mat-label>
+            <textarea matInput formControlName="notes" rows="2" placeholder="Motivo de la transferencia..."></textarea>
+          </mat-form-field>
+
+          <div class="form-actions">
+            <button mat-button type="button" routerLink="/stocks">Cancelar</button>
+            <button mat-raised-button color="primary" type="submit" [disabled]="form.invalid || saving()">
+              @if (saving()) {
+                <mat-spinner diameter="20" />
+              } @else {
+                Realizar Transferencia
+              }
+            </button>
+          </div>
+
+        </form>
+      </mat-card-content>
+    </mat-card>
+  }
+</div>

@@ -1,0 +1,14 @@
+{
+  "/admin": {
+    "target": "https://api.instelec-electric.com",
+    "secure": true,
+    "changeOrigin": true,
+    "logLevel": "debug"
+  },
+  "/inventory": {
+    "target": "https://api.instelec-electric.com",
+    "secure": true,
+    "changeOrigin": true,
+    "logLevel": "debug"
+  }
+}

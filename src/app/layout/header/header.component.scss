@@ -1,0 +1,132 @@
+.header {
+  display: flex;
+  align-items: center;
+  padding: 0 24px;
+  height: 72px;
+  background: white;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  gap: 12px;
+}
+
+.search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #f3f4f6;
+  border-radius: 10px;
+  padding: 0 14px;
+  height: 40px;
+  width: 320px;
+  max-width: 100%;
+  transition: background 0.15s, box-shadow 0.15s;
+}
+
+.search:focus-within {
+  background: white;
+  box-shadow: 0 0 0 3px rgba(201, 17, 71, 0.15);
+}
+
+.search-icon {
+  color: var(--text-muted);
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+}
+
+.search-input {
+  border: none;
+  background: transparent;
+  outline: none;
+  flex: 1;
+  font-size: 14px;
+  color: var(--text-primary);
+}
+
+.search-input::placeholder {
+  color: var(--text-muted);
+}
+
+.spacer {
+  flex: 1;
+}
+
+.icon-btn {
+  color: var(--text-secondary);
+}
+
+.v-divider {
+  width: 1px;
+  height: 28px;
+  background: var(--border);
+  margin: 0 4px;
+}
+
+.user-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 8px 4px 4px !important;
+  border-radius: 10px !important;
+  height: auto !important;
+  text-transform: none !important;
+  color: var(--text-primary) !important;
+}
+
+.user-btn:hover {
+  background: #f3f4f6 !important;
+}
+
+.avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, var(--brand-red), #a00d38);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 14px;
+  letter-spacing: 0.5px;
+}
+
+.user-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  line-height: 1.2;
+}
+
+.user-meta strong {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.user-meta small {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.caret {
+  color: var(--text-muted);
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+}
+
+.menu-user {
+  padding: 12px 16px;
+  display: flex;
+  flex-direction: column;
+  min-width: 220px;
+}
+
+.menu-user strong {
+  font-size: 14px;
+}
+
+.menu-user small {
+  font-size: 12px;
+  color: var(--text-muted);
+}

@@ -1,0 +1,231 @@
+.page {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.page-header {
+  margin-bottom: 24px;
+}
+
+.page-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.page-subtitle {
+  color: var(--text-secondary);
+  margin: 4px 0 0;
+  font-size: 14px;
+}
+
+.table-card {
+  background: white;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+
+.toolbar {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.search-box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #f3f4f6;
+  border-radius: 8px;
+  padding: 0 12px;
+  height: 40px;
+  width: 280px;
+  max-width: 100%;
+}
+
+.search-box:focus-within {
+  background: white;
+  box-shadow: 0 0 0 2px var(--brand-red);
+}
+
+.search-box mat-icon {
+  color: var(--text-muted);
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+}
+
+.search-box input {
+  border: none;
+  background: transparent;
+  outline: none;
+  flex: 1;
+  font-size: 14px;
+  color: var(--text-primary);
+}
+
+.filters {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.filter-field {
+  width: 160px;
+  font-size: 14px;
+}
+
+/* Ajustes compactos para los form-field */
+::ng-deep .filter-field .mat-mdc-text-field-wrapper {
+  height: 40px;
+}
+::ng-deep .filter-field .mat-mdc-form-field-flex {
+  align-items: center;
+}
+::ng-deep .filter-field .mat-mdc-form-field-infix {
+  padding-top: 8px !important;
+  padding-bottom: 8px !important;
+  min-height: 40px !important;
+}
+
+.clear-btn {
+  color: var(--text-muted);
+}
+
+.full-width {
+  width: 100%;
+}
+
+.text-right {
+  text-align: right;
+}
+
+/* Celdas */
+.date-cell {
+  display: flex;
+  flex-direction: column;
+}
+
+.date-cell strong {
+  font-size: 13px;
+  color: var(--text-primary);
+}
+
+.date-cell small {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.product-cell {
+  display: flex;
+  flex-direction: column;
+}
+
+.product-cell strong {
+  font-size: 14px;
+  color: var(--text-primary);
+}
+
+.product-cell small {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.warehouse-badge {
+  background: #f1f5f9;
+  color: #475569;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.qty-value {
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.qty-value.pos { color: #10b981; }
+.qty-value.neg { color: #ef4444; }
+
+.reason-text {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+/* Badges de tipo */
+.type-badge {
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.type-badge.in { background: #d1fae5; color: #065f46; }
+.type-badge.out { background: #fee2e2; color: #991b1b; }
+.type-badge.adjustment { background: #fef3c7; color: #92400e; }
+.type-badge.transfer_in { background: #dbeafe; color: #1e40af; }
+.type-badge.transfer_out { background: #e0e7ff; color: #3730a3; }
+.type-badge.purchase_receive { background: #dcfce7; color: #166534; }
+.type-badge.sale { background: #fce7f3; color: #9d174d; }
+
+.spinner-wrap {
+  display: flex;
+  justify-content: center;
+  padding: 60px 0;
+}
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 60px 20px;
+  text-align: center;
+  color: var(--text-secondary);
+}
+
+.empty mat-icon {
+  font-size: 64px;
+  width: 64px;
+  height: 64px;
+  color: var(--text-muted);
+  opacity: 0.5;
+  margin-bottom: 16px;
+}
+
+.empty h3 {
+  font-size: 18px;
+  color: var(--text-primary);
+  margin: 0 0 8px;
+}
+
+/* Tabla */
+th.mat-header-cell {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 16px 20px;
+  background: #fafbfc;
+}
+
+td.mat-cell {
+  padding: 16px 20px;
+  font-size: 14px;
+  color: var(--text-primary);
+  border-bottom-color: var(--border);
+}
+
+tr.mat-row:hover {
+  background: #fafbfc;
+}

@@ -1,0 +1,147 @@
+<div class="page">
+  <div class="page-header">
+    <a mat-icon-button routerLink="/purchase-orders" matTooltip="Volver a la lista">
+      <mat-icon>arrow_back</mat-icon>
+    </a>
+    <div class="title-wrap">
+      <h1 class="page-title">Orden {{ po()?.orderNumber }}</h1>
+      @if (po(); as order) {
+        <span class="status-badge" [ngClass]="order.status">{{ getStatusLabel(order.status) }}</span>
+      }
+    </div>
+    <div class="spacer"></div>
+    
+    @if (po(); as order) {
+      <div class="header-actions">
+        @if (order.status === 'draft') {
+          <button mat-stroked-button color="primary" (click)="changeStatus('sent', '¿Marcar como enviada al proveedor?')">
+            <mat-icon>send</mat-icon> Enviar
+          </button>
+        }
+        @if (order.status === 'sent') {
+          <button mat-stroked-button color="primary" (click)="changeStatus('confirmed', '¿El proveedor confirmó la orden?')">
+            <mat-icon>check_circle</mat-icon> Confirmar
+          </button>
+        }
+        @if (order.status === 'confirmed' || order.status === 'partially_received') {
+          <a mat-raised-button color="primary" [routerLink]="['/purchase-orders', order.id, 'receive']">
+            <mat-icon>download</mat-icon> Recibir Mercancía
+          </a>
+        }
+        @if (order.status === 'draft') {
+          <a mat-stroked-button [routerLink]="['/purchase-orders', order.id, 'edit']">
+            <mat-icon>edit</mat-icon> Editar
+          </a>
+          <button mat-icon-button color="warn" (click)="deleteOrder()" matTooltip="Eliminar">
+            <mat-icon>delete</mat-icon>
+          </button>
+        }
+      </div>
+    }
+  </div>
+
+  @if (loading()) {
+    <div class="spinner-wrap"><mat-spinner diameter="48" /></div>
+  } @else if (po(); as order) {
+    <div class="detail-grid">
+      
+      <!-- Info General -->
+      <mat-card class="detail-card">
+        <mat-card-header><mat-card-title>Información de la Orden</mat-card-title></mat-card-header>
+        <mat-card-content>
+          <div class="info-list">
+            <div class="info-row">
+              <span class="label">Proveedor</span>
+              <span class="value font-bold">{{ order.supplier?.name || '—' }}</span>
+            </div>
+            <mat-divider />
+            <div class="info-row">
+              <span class="label">Almacén Destino</span>
+              <span class="value">{{ order.warehouse?.name || '—' }}</span>
+            </div>
+            <mat-divider />
+            <div class="info-row">
+              <span class="label">Fecha de Orden</span>
+              <span class="value">{{ order.orderDate | date: 'dd MMM yyyy' }}</span>
+            </div>
+            <mat-divider />
+            <div class="info-row">
+              <span class="label">Fecha Esperada</span>
+              <span class="value">{{ order.expectedDate ? (order.expectedDate | date: 'dd MMM yyyy') : '—' }}</span>
+            </div>
+            <mat-divider />
+            <div class="info-row">
+              <span class="label">Notas</span>
+              <span class="value">{{ order.notes || '—' }}</span>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Resumen -->
+      <mat-card class="detail-card summary-card">
+        <mat-card-header><mat-card-title>Resumen Total</mat-card-title></mat-card-header>
+        <mat-card-content>
+          <div class="summary-row">
+            <span>Subtotal</span>
+            <span>{{ order.subtotal | currency:'USD':'symbol':'1.2-2' }}</span>
+          </div>
+          <div class="summary-row">
+            <span>Impuestos</span>
+            <span>{{ order.taxAmount | currency:'USD':'symbol':'1.2-2' }}</span>
+          </div>
+          <mat-divider class="my-2" />
+          <div class="summary-row total">
+            <span>Total</span>
+            <span>{{ order.totalAmount | currency:'USD':'symbol':'1.2-2' }}</span>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+    </div>
+
+    <!-- Tabla de Productos -->
+    <mat-card class="detail-card mt-4">
+      <mat-card-header><mat-card-title>Productos Solicitados</mat-card-title></mat-card-header>
+      <mat-card-content>
+        <table mat-table [dataSource]="order.items" class="full-width">
+          <ng-container matColumnDef="product">
+            <th mat-header-cell *matHeaderCellDef>Producto</th>
+            <td mat-cell *matCellDef="let item">
+              <strong>{{ item.productName || item.productId }}</strong>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="qty">
+            <th mat-header-cell *matHeaderCellDef class="text-right">Cant. Pedida</th>
+            <td mat-cell *matCellDef="let item" class="text-right">{{ item.quantity }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="received">
+            <th mat-header-cell *matHeaderCellDef class="text-right">Recibido</th>
+            <td mat-cell *matCellDef="let item" class="text-right">
+              <span [class.text-green]="item.receivedQuantity === item.quantity">
+                {{ item.receivedQuantity || 0 }}
+              </span>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="price">
+            <th mat-header-cell *matHeaderCellDef class="text-right">Precio Unit.</th>
+            <td mat-cell *matCellDef="let item" class="text-right">{{ item.unitPrice | currency:'USD':'symbol':'1.2-2' }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="total">
+            <th mat-header-cell *matHeaderCellDef class="text-right">Total</th>
+            <td mat-cell *matCellDef="let item" class="text-right font-bold">
+              {{ (item.quantity * item.unitPrice) | currency:'USD':'symbol':'1.2-2' }}
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="columns"></tr>
+          <tr mat-row *matRowDef="let row; columns: columns"></tr>
+        </table>
+      </mat-card-content>
+    </mat-card>
+  }
+</div>

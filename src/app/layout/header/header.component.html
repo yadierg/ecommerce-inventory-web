@@ -1,0 +1,49 @@
+<header class="header">
+  <!-- Search -->
+  <div class="search">
+    <mat-icon class="search-icon">search</mat-icon>
+    <input type="text" placeholder="Buscar..." class="search-input" />
+  </div>
+
+  <div class="spacer"></div>
+
+  <!-- Botón Dark/Light -->
+  <button mat-icon-button (click)="toggleTheme()" matTooltip="Cambiar tema" class="icon-btn">
+    <mat-icon>{{ isDarkMode() ? 'light_mode' : 'dark_mode' }}</mat-icon>
+  </button>
+
+  <!-- Divider -->
+  <div class="v-divider"></div>
+
+  <!-- User -->
+  <button mat-button class="user-btn" [matMenuTriggerFor]="menu">
+    <div class="avatar">{{ initials() }}</div>
+    <div class="user-meta">
+      <strong>{{ user?.name || 'Usuario' }}</strong>
+      <small>{{ user?.email }}</small>
+    </div>
+    <mat-icon class="caret">expand_more</mat-icon>
+  </button>
+
+  <!-- Menú de Usuario -->
+  <mat-menu #menu="matMenu" class="user-menu">
+    <div class="menu-user">
+      <strong>{{ user?.name }}</strong>
+      <small>{{ user?.email }}</small>
+    </div>
+    <mat-divider />
+    <button mat-menu-item>
+      <mat-icon>person</mat-icon>
+      <span>Mi perfil</span>
+    </button>
+    <button mat-menu-item>
+      <mat-icon>settings</mat-icon>
+      <span>Configuración</span>
+    </button>
+    <mat-divider />
+    <button mat-menu-item (click)="logout()">
+      <mat-icon>logout</mat-icon>
+      <span>Cerrar sesión</span>
+    </button>
+  </mat-menu>
+</header>

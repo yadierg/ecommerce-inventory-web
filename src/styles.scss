@@ -1,0 +1,94 @@
+@use '@angular/material' as mat;
+
+/* =========================================
+   1. TEMAS DE ANGULAR MATERIAL 20
+   ========================================= */
+html {
+  @include mat.theme((
+    color: (
+      primary: mat.$azure-palette,
+      tertiary: mat.$blue-palette,
+    ),
+    typography: Roboto,
+    density: 0,
+  ));
+  color-scheme: light dark;
+}
+
+body.light-theme {
+  color-scheme: light;
+  @include mat.theme((
+    color: (
+      primary: mat.$azure-palette,
+      tertiary: mat.$blue-palette,
+    ),
+    typography: Roboto,
+    density: 0,
+  ));
+}
+
+body.dark-theme {
+  color-scheme: dark;
+  @include mat.theme((
+    color: (
+      primary: mat.$azure-palette,
+      tertiary: mat.$blue-palette,
+    ),
+    typography: Roboto,
+    density: 0,
+  ));
+}
+
+/* =========================================
+   2. TAILWIND Y VARIABLES GLOBALES
+   ========================================= */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Variables para Tema Claro */
+  --bg-app: #f5f7fa;
+  --bg-card: #ffffff;
+  --border: #e4e7ec;
+  --text-primary: #1f2937;
+  --text-secondary: #6b7280;
+  --text-muted: #9ca3af;
+  --shadow-sm: 0 1px 2px rgba(16, 24, 40, 0.05);
+  --shadow-md: 0 4px 8px -2px rgba(16, 24, 40, 0.1);
+  --shadow-lg: 0 12px 16px -4px rgba(16, 24, 40, 0.08);
+  --brand-red: #C91147;
+}
+
+body.dark-theme {
+  /* Variables para Tema Oscuro */
+  --bg-app: #0f172a;
+  --bg-card: #1e293b;
+  --border: #334155;
+  --text-primary: #f8fafc;
+  --text-secondary: #cbd5e1;
+  --text-muted: #94a3b8;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 8px -2px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 12px 16px -4px rgba(0, 0, 0, 0.5);
+}
+
+/* =========================================
+   3. FIX CRÍTICO: Tailwind vs Material Forms
+   ========================================= */
+
+
+/* Asegurar que los labels floten correctamente */
+.mat-mdc-form-field-label-wrapper {
+  pointer-events: none;
+}
+
+/* Estilos base del body */
+html, body {
+  height: 100%;
+  margin: 0;
+  font-family: Roboto, 'Helvetica Neue', sans-serif;
+  background: var(--bg-app);
+  color: var(--text-primary);
+  transition: background-color 0.3s, color 0.3s;
+}
