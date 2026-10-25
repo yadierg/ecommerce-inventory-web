@@ -1,0 +1,85 @@
+<div class="page">
+  <div class="page-header">
+    <h1 class="page-title">Categorías</h1>
+    <p class="page-subtitle">Organiza tus productos en categorías para el catálogo</p>
+  </div>
+
+  <div class="grid-layout">
+    <!-- Formulario de Creación -->
+    <mat-card class="form-card">
+      <mat-card-header>
+        <mat-card-title>Nueva Categoría</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <form [formGroup]="form" (ngSubmit)="onSubmit()" class="flex-col">
+          
+          <mat-form-field appearance="outline">
+            <mat-label>Nombre *</mat-label>
+            <input matInput formControlName="name" placeholder="Ej. Paneles Solares" />
+            @if (form.get('name')?.invalid && form.get('name')?.touched) {
+              <mat-error>El nombre es requerido</mat-error>
+            }
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Descripción</mat-label>
+            <textarea matInput formControlName="description" rows="2"></textarea>
+          </mat-form-field>
+
+          <mat-slide-toggle formControlName="isActive" color="primary" class="mb-4">
+            Categoría Activa
+          </mat-slide-toggle>
+
+          <button mat-raised-button color="primary" type="submit" [disabled]="saving()">
+            @if (saving()) {
+              <mat-spinner diameter="20" />
+            } @else {
+              Guardar Categoría
+            }
+          </button>
+        </form>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Tabla de Categorías -->
+    <mat-card class="table-card">
+      <mat-card-content>
+        @if (loading()) {
+          <div class="spinner-wrap"><mat-spinner diameter="40" /></div>
+        } @else if (categories().length === 0) {
+          <div class="empty">No hay categorías creadas.</div>
+        } @else {
+          <table mat-table [dataSource]="categories()" class="full-width">
+            
+            <ng-container matColumnDef="name">
+              <th mat-header-cell *matHeaderCellDef>Nombre</th>
+              <td mat-cell *matCellDef="let c">
+                <strong>{{ c.name }}</strong>
+                @if (c.description) {
+                  <div class="text-muted small">{{ c.description }}</div>
+                }
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="slug">
+              <th mat-header-cell *matHeaderCellDef>Slug</th>
+              <td mat-cell *matCellDef="let c"><code>{{ c.slug }}</code></td>
+            </ng-container>
+
+            <ng-container matColumnDef="status">
+              <th mat-header-cell *matHeaderCellDef>Estado</th>
+              <td mat-cell *matCellDef="let c">
+                <span class="badge" [class.active]="c.isActive" [class.inactive]="!c.isActive">
+                  {{ c.isActive ? 'Activa' : 'Inactiva' }}
+                </span>
+              </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="columns"></tr>
+            <tr mat-row *matRowDef="let row; columns: columns"></tr>
+          </table>
+        }
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>

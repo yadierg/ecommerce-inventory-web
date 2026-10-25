@@ -99,7 +99,13 @@ export class WarehouseFormComponent implements OnInit {
     }
     this.saving.set(true);
     const payload = this.form.value as any;
+    // Limpieza de campos vacíos
     if (payload.capacity === null || payload.capacity === '') delete payload.capacity;
+    
+    // 👈 SI ESTAMOS EDITANDO, ELIMINAMOS EL CÓDIGO DEL PAYLOAD
+    if (this.id) {
+      delete payload.code; 
+    }
 
     const obs = this.id
       ? this.svc.update(this.id, payload)

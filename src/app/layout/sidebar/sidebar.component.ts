@@ -18,6 +18,8 @@ interface NavItem {
 export class SidebarComponent {
   navItems: NavItem[] = [
     { label: 'Dashboard', icon: 'space_dashboard', route: '/dashboard' },
+    { label: 'Categorías', icon: 'category', route: '/categories' }, // 👈 NUEVO
+    { label: 'Productos', icon: 'category', route: '/products' }, // <-- NUEVO
     { label: 'Almacenes', icon: 'warehouse', route: '/warehouses' },
     { label: 'Stock', icon: 'inventory_2', route: '/stocks' },
     { label: 'Movimientos', icon: 'swap_horiz', route: '/movements' },

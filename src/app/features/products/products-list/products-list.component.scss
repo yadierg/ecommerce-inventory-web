@@ -1,0 +1,12 @@
+.page { max-width: 1400px; margin: 0 auto; padding: 24px; }
+.page-header { margin-bottom: 24px; }
+.page-title { font-size: 24px; font-weight: 700; color: var(--text-primary); margin: 0; }
+.page-subtitle { color: var(--text-secondary); margin: 4px 0 0; }
+
+.grid-layout { display: grid; grid-template-columns: 350px 1fr; gap: 24px; }
+@media (max-width: 900px) { .grid-layout { grid-template-columns: 1fr; } }
+
+.form-card, .table-card { border-radius: 12px !important; box-shadow: 0 1px 3px rgba(0,0,0,0.1) !important; background: var(--bg-card) !important;}
+.flex-col { display: flex; flex-direction: column; gap: 8px; }
+.full-width { width: 100%; }
+.text-muted { color: var(--text-muted); }

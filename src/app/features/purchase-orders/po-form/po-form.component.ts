@@ -1,7 +1,7 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
-import { FormBuilder, FormArray, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, FormArray, ReactiveFormsModule, Validators, FormControl } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { CurrencyPipe } from '@angular/common';
+// import { CurrencyPipe, AsyncPipe } from '@angular/common';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
@@ -12,21 +12,28 @@ import { MatNativeDateModule } from '@angular/material/core';
 import { MatCardModule } from '@angular/material/card';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatDividerModule } from '@angular/material/divider';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
+
+import { map, startWith } from 'rxjs/operators';
+import { Observable } from 'rxjs';
 
 import { PurchaseOrdersService } from '../../../core/services/purchase-orders.service';
 import { SuppliersService } from '../../../core/services/suppliers.service';
 import { WarehousesService } from '../../../core/services/warehouses.service';
+import { StocksService } from '../../../core/services/stocks.service';
 import { NotificationService } from '../../../core/services/notification.service';
 import { Supplier } from '../../../core/models/supplier.model';
 import { Warehouse } from '../../../core/models/warehouse.model';
+import { Stock } from '../../../core/models/stock.model';
 
 @Component({
   selector: 'app-po-form',
   standalone: true,
   imports: [
     ReactiveFormsModule,
-    RouterLink,
-    CurrencyPipe,
+    // RouterLink,
+    // CurrencyPipe,
+    // AsyncPipe,
     MatFormFieldModule,
     MatInputModule,
     MatButtonModule,
@@ -37,6 +44,7 @@ import { Warehouse } from '../../../core/models/warehouse.model';
     MatCardModule,
     MatProgressSpinnerModule,
     MatDividerModule,
+    MatAutocompleteModule,
   ],
   templateUrl: './po-form.component.html',
   styleUrls: ['./po-form.component.scss']
@@ -46,6 +54,7 @@ export class PoFormComponent implements OnInit {
   private svc = inject(PurchaseOrdersService);
   private suppliersSvc = inject(SuppliersService);
   private warehousesSvc = inject(WarehousesService);
+  private stocksSvc = inject(StocksService);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
   private notification = inject(NotificationService);
@@ -57,6 +66,7 @@ export class PoFormComponent implements OnInit {
 
   suppliers = signal<Supplier[]>([]);
   warehouses = signal<Warehouse[]>([]);
+  availableProducts = signal<Stock[]>([]);
 
   form = this.fb.group({
     supplierId: ['', Validators.required],
@@ -79,7 +89,7 @@ export class PoFormComponent implements OnInit {
       this.isEdit.set(true);
       this.loadOrder(this.id);
     } else {
-      this.addItem(); // Empezar con 1 ítem por defecto
+      this.addItem();
       this.loading.set(false);
     }
   }
@@ -87,6 +97,12 @@ export class PoFormComponent implements OnInit {
   loadCatalogs() {
     this.suppliersSvc.findAll().subscribe(data => this.suppliers.set(data));
     this.warehousesSvc.findAll().subscribe(data => this.warehouses.set(data));
+    // Cargamos los productos que ya existen en el inventario
+    this.stocksSvc.findAll().subscribe(data => {
+      // Filtramos duplicados por ID de producto
+      const unique = Array.from(new Map(data.map(s => [s.productId, s])).values());
+      this.availableProducts.set(unique);
+    });
   }
 
   loadOrder(id: string) {
@@ -100,7 +116,6 @@ export class PoFormComponent implements OnInit {
           notes: po.notes ?? '',
         });
 
-        // Limpiar items por defecto y cargar los reales
         this.items.clear();
         po.items.forEach(item => {
           this.items.push(this.fb.group({
@@ -117,6 +132,15 @@ export class PoFormComponent implements OnInit {
         this.router.navigate(['/purchase-orders']);
       }
     });
+  }
+
+  // Filtro para el Autocomplete de productos
+  _filterProducts(value: string): Stock[] {
+    const filterValue = value.toLowerCase();
+    return this.availableProducts().filter(
+      p => p.product?.name?.toLowerCase().includes(filterValue) || 
+           p.productId.toLowerCase().includes(filterValue)
+    );
   }
 
   addItem() {
@@ -141,6 +165,12 @@ export class PoFormComponent implements OnInit {
     }, 0);
   }
 
+  displayProduct = (id: string): string => {
+    if (!id) return '';
+    const p = this.availableProducts().find(x => x.productId === id);
+    return p ? `${p.product?.name || 'Producto'} (${id.slice(0,8)})` : id;
+  }
+
   onSubmit() {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
@@ -151,7 +181,6 @@ export class PoFormComponent implements OnInit {
     this.saving.set(true);
     const formValue = this.form.value;
 
-    // Formatear fechas a ISO string (solo la parte de la fecha)
     const payload: any = {
       supplierId: formValue.supplierId,
       warehouseId: formValue.warehouseId,
@@ -161,9 +190,7 @@ export class PoFormComponent implements OnInit {
       items: formValue.items
     };
 
-    const obs = this.id
-      ? this.svc.update(this.id, payload)
-      : this.svc.create(payload);
+    const obs = this.id ? this.svc.update(this.id, payload) : this.svc.create(payload);
 
     obs.subscribe({
       next: (res) => {

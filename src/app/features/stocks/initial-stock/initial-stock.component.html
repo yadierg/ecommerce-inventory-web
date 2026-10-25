@@ -1,0 +1,90 @@
+<div class="page">
+  <div class="page-header">
+    <a mat-icon-button routerLink="/stocks" matTooltip="Volver">
+      <mat-icon>arrow_back</mat-icon>
+    </a>
+    <div>
+      <h1 class="page-title">Carga Inicial de Inventario</h1>
+      <p class="page-subtitle">Inyecta mercancía existente sin pasar por una Orden de Compra</p>
+    </div>
+  </div>
+
+  @if (loading()) {
+    <div class="spinner-wrap"><mat-spinner diameter="48" /></div>
+  } @else {
+    <form [formGroup]="form" (ngSubmit)="onSubmit()">
+      
+      <mat-card class="form-card">
+        <mat-card-content>
+          <div class="grid-2">
+            <mat-form-field appearance="outline">
+              <mat-label>Almacén Destino *</mat-label>
+              <mat-select formControlName="warehouseId">
+                @for (wh of warehouses(); track wh.id) {
+                  <mat-option [value]="wh.id">{{ wh.name }} ({{ wh.code }})</mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Motivo</mat-label>
+              <input matInput formControlName="reason" />
+            </mat-form-field>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="form-card">
+        <mat-card-header class="items-header">
+          <mat-card-title>Productos a Cargar</mat-card-title>
+          <button mat-stroked-button color="primary" type="button" (click)="addItem()">
+            <mat-icon>add</mat-icon> Añadir Producto
+          </button>
+        </mat-card-header>
+        <mat-card-content>
+          <div formArrayName="items" class="items-list">
+            @for (item of items.controls; track $index; let i = $index) {
+              <div [formGroupName]="i" class="item-row">
+                <mat-form-field appearance="outline" class="product-field">
+                  <mat-label>Producto *</mat-label>
+                  <mat-select formControlName="productId">
+                    @for (p of products(); track p.id) {
+                      <mat-option [value]="p.id">{{ p.name }} ({{ p.sku }})</mat-option>
+                    }
+                  </mat-select>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="qty-field">
+                  <mat-label>Cantidad *</mat-label>
+                  <input matInput type="number" formControlName="quantity" min="0.01" />
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="price-field">
+                  <mat-label>Costo Unit. (Est.)</mat-label>
+                  <input matInput type="number" formControlName="unitCost" min="0" />
+                  <span matPrefix>$&nbsp;</span>
+                </mat-form-field>
+
+                <button mat-icon-button color="warn" type="button" (click)="removeItem(i)" [disabled]="items.length === 1">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </div>
+            }
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <div class="form-actions">
+        <button mat-button type="button" routerLink="/stocks">Cancelar</button>
+        <button mat-raised-button color="primary" type="submit" [disabled]="form.invalid || saving()">
+          @if (saving()) {
+            <mat-spinner diameter="20" />
+          } @else {
+            Confirmar Carga Inicial
+          }
+        </button>
+      </div>
+
+    </form>
+  }
+</div>

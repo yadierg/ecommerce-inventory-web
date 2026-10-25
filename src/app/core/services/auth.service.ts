@@ -56,7 +56,11 @@ export class AuthService {
     localStorage.setItem('refresh_token', response.refreshToken);
     localStorage.setItem('user', JSON.stringify(response.user));
     localStorage.setItem('permissions', JSON.stringify(response.permissions));
-    localStorage.setItem('tenant_id', response.user.tenantId);
+    
+    // 👈 AQUÍ ESTÁ LA MAGIA: Guardamos el tenant_id de forma segura
+    const tenantId = response.user?.tenantId || environment.tenantId;
+    localStorage.setItem('tenant_id', tenantId);
+
     this.currentUser.set(response.user);
     this.permissions.set(response.permissions);
   }
@@ -81,7 +85,10 @@ export class AuthService {
   }
 
   getTenantId(): string | null {
-    return localStorage.getItem('tenant_id');
+    const id = localStorage.getItem('tenant_id');
+    // Filtramos si por alguna razón quedó guardado el string "undefined"
+    if (!id || id === 'undefined' || id === 'null') return null;
+    return id;
   }
 
   getUser(): User | null {

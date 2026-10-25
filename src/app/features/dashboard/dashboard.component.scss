@@ -74,7 +74,7 @@
 }
 
 .kpi-card {
-  background: white;
+  background: var(--bg-card); /* Antes era white */
   border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: 20px;
@@ -82,13 +82,13 @@
   gap: 16px;
   text-decoration: none;
   color: inherit;
-  transition: box-shadow 0.15s, transform 0.15s, border-color 0.15s;
+  transition: box-shadow 0.15s, transform 0.15s, border-color 0.15s, background-color 0.3s;
 }
 
 .kpi-card:hover {
   box-shadow: var(--shadow-lg);
   transform: translateY(-2px);
-  border-color: #d1d5db;
+  border-color: var(--brand-red);
 }
 
 .kpi-icon {
@@ -159,11 +159,12 @@
 }
 
 .chart-card {
-  background: white;
+  background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: 20px;
   overflow: hidden;
+  transition: background-color 0.3s;
 }
 
 .chart-header {

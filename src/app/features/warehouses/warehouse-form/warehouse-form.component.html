@@ -24,6 +24,9 @@
             <mat-form-field appearance="outline">
               <mat-label>Código *</mat-label>
               <input matInput formControlName="code" placeholder="Ej. ALM-01" />
+              @if (isEdit()) {
+                <mat-hint>El código no se puede cambiar</mat-hint>
+              }
               @if (form.get('code')?.invalid && form.get('code')?.touched) {
                 <mat-error>Código requerido</mat-error>
               }

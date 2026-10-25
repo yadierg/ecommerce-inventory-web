@@ -128,6 +128,18 @@ export const routes: Routes = [
             (m) => m.PoReceiveComponent,
           ),
       },
+      {
+        path: 'products',
+        loadComponent: () => import('./features/products/products-list/products-list.component').then(m => m.ProductsListComponent)
+      },
+      {
+        path: 'categories',
+        loadComponent: () => import('./features/categories/categories-list/categories-list.component').then(m => m.CategoriesListComponent)
+      },
+      {
+        path: 'stocks/initial',
+        loadComponent: () => import('./features/stocks/initial-stock/initial-stock.component').then(m => m.InitialStockComponent)
+      },
     ],
   },
   { path: '**', redirectTo: 'dashboard' },

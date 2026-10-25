@@ -92,3 +92,47 @@ html, body {
   color: var(--text-primary);
   transition: background-color 0.3s, color 0.3s;
 }
+
+/* =========================================
+   4. TABLAS DE MATERIAL GLOBALES (Dark/Light)
+   ========================================= */
+.mat-mdc-table {
+  background-color: transparent !important;
+}
+
+th.mat-mdc-header-cell {
+  background-color: var(--bg-app) !important;
+  color: var(--text-secondary) !important;
+  border-bottom-color: var(--border) !important;
+  font-weight: 600 !important;
+  font-size: 13px !important;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+td.mat-mdc-cell {
+  color: var(--text-primary) !important;
+  border-bottom-color: var(--border) !important;
+  font-size: 14px;
+}
+
+tr.mat-mdc-row:hover {
+  background-color: var(--bg-app) !important;
+}
+
+/* Paginador */
+.mat-mdc-paginator {
+  background-color: transparent !important;
+  color: var(--text-secondary) !important;
+}
+
+.mat-mdc-paginator-icon {
+  fill: var(--text-secondary) !important;
+}
+
+/* Tarjetas (Cards) globales */
+.mat-mdc-card {
+  background-color: var(--bg-card) !important;
+  color: var(--text-primary) !important;
+  transition: background-color 0.3s, color 0.3s;
+}
