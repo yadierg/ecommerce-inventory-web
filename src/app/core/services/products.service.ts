@@ -23,7 +23,20 @@ export class ProductsService {
     return this.http.get<PaginatedProductResponse>(this.baseUrl, { params });
   }
 
+  findOne(id: string) {
+    return this.http.get<Product>(`${this.baseUrl}/${id}`);
+  }
+
   create(dto: CreateProductDto) {
     return this.http.post<Product>(this.baseUrl, dto);
+  }
+
+  // 👈 AÑADIR ESTOS DOS MÉTODOS
+  update(id: string, dto: Partial<CreateProductDto>) {
+    return this.http.patch<Product>(`${this.baseUrl}/${id}`, dto);
+  }
+
+  remove(id: string) {
+    return this.http.delete<{ message: string }>(`${this.baseUrl}/${id}`);
   }
 }

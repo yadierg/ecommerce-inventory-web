@@ -1,4 +1,5 @@
-import { Component, inject, signal, OnInit } from '@angular/core';
+import { Component, inject, signal, OnInit, EventEmitter, Output } from '@angular/core';
+import { Router, RouterLink } from '@angular/router'; // 👈 Añadir Router
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatMenuModule } from '@angular/material/menu';
@@ -9,23 +10,22 @@ import { AuthService } from '../../core/services/auth.service';
 @Component({
   selector: 'app-header',
   standalone: true,
-  imports: [MatIconModule, MatButtonModule, MatMenuModule, MatDividerModule, MatTooltipModule],
+  imports: [MatIconModule, MatButtonModule, MatMenuModule, MatDividerModule, MatTooltipModule, RouterLink],
   templateUrl: './header.component.html',
   styleUrls: ['./header.component.scss']
 })
 export class HeaderComponent implements OnInit {
   private authService = inject(AuthService);
+  private router = inject(Router);
+  
   user = this.authService.getUser();
   isDarkMode = signal(false);
 
+  @Output() dateRangeChanged = new EventEmitter<string>();
+
   ngOnInit() {
-    // Detectar preferencia guardada
     const savedTheme = localStorage.getItem('theme');
-    if (savedTheme === 'dark') {
-      this.setDarkMode(true);
-    } else {
-      this.setDarkMode(false);
-    }
+    this.setDarkMode(savedTheme === 'dark');
   }
 
   toggleTheme() {
@@ -43,6 +43,10 @@ export class HeaderComponent implements OnInit {
       document.body.classList.remove('dark-theme');
       localStorage.setItem('theme', 'light');
     }
+  }
+
+  onDateFilter(range: string) {
+    this.dateRangeChanged.emit(range);
   }
 
   initials(): string {

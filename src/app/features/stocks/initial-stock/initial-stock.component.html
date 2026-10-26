@@ -14,7 +14,7 @@
   } @else {
     <form [formGroup]="form" (ngSubmit)="onSubmit()">
       
-      <mat-card class="form-card">
+      <mat-card class="form-card mb-4">
         <mat-card-content>
           <div class="grid-2">
             <mat-form-field appearance="outline">
@@ -27,25 +27,27 @@
             </mat-form-field>
 
             <mat-form-field appearance="outline">
-              <mat-label>Motivo</mat-label>
+              <mat-label>Motivo de la carga</mat-label>
               <input matInput formControlName="reason" />
             </mat-form-field>
           </div>
         </mat-card-content>
       </mat-card>
 
-      <mat-card class="form-card">
-        <mat-card-header class="items-header">
-          <mat-card-title>Productos a Cargar</mat-card-title>
-          <button mat-stroked-button color="primary" type="button" (click)="addItem()">
-            <mat-icon>add</mat-icon> Añadir Producto
-          </button>
-        </mat-card-header>
-        <mat-card-content>
-          <div formArrayName="items" class="items-list">
-            @for (item of items.controls; track $index; let i = $index) {
-              <div [formGroupName]="i" class="item-row">
-                <mat-form-field appearance="outline" class="product-field">
+      <div class="items-header">
+        <h2 class="section-title">Productos a Cargar</h2>
+        <button mat-stroked-button color="primary" type="button" (click)="addItem()">
+          <mat-icon>add</mat-icon> Añadir Producto
+        </button>
+      </div>
+
+      <div formArrayName="items" class="items-list">
+        @for (item of items.controls; track $index; let i = $index) {
+          <mat-card [formGroupName]="i" class="item-card">
+            <mat-card-content>
+              <div class="item-grid">
+                <!-- Producto -->
+                <mat-form-field appearance="outline" class="col-span-2">
                   <mat-label>Producto *</mat-label>
                   <mat-select formControlName="productId">
                     @for (p of products(); track p.id) {
@@ -54,27 +56,57 @@
                   </mat-select>
                 </mat-form-field>
 
-                <mat-form-field appearance="outline" class="qty-field">
+                <!-- Cantidad -->
+                <mat-form-field appearance="outline">
                   <mat-label>Cantidad *</mat-label>
                   <input matInput type="number" formControlName="quantity" min="0.01" />
                 </mat-form-field>
 
-                <mat-form-field appearance="outline" class="price-field">
+                <!-- Costo Unitario -->
+                <mat-form-field appearance="outline">
                   <mat-label>Costo Unit. (Est.)</mat-label>
                   <input matInput type="number" formControlName="unitCost" min="0" />
                   <span matPrefix>$&nbsp;</span>
                 </mat-form-field>
 
-                <button mat-icon-button color="warn" type="button" (click)="removeItem(i)" [disabled]="items.length === 1">
-                  <mat-icon>delete</mat-icon>
+                <!-- Lote -->
+                <mat-form-field appearance="outline">
+                  <mat-label>Nº de Lote</mat-label>
+                  <input matInput formControlName="lotNumber" placeholder="LOTE-2024" />
+                </mat-form-field>
+
+                <!-- Ubicación -->
+                <mat-form-field appearance="outline">
+                  <mat-label>Ubicación</mat-label>
+                  <input matInput formControlName="location" placeholder="A-1-3" />
+                </mat-form-field>
+
+                <!-- Fecha de adquisición -->
+                <mat-form-field appearance="outline">
+                  <mat-label>Fecha Adquisición</mat-label>
+                  <input matInput [matDatepicker]="picker" formControlName="estimatedAcquisitionDate" />
+                  <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+                  <mat-datepicker #picker></mat-datepicker>
+                </mat-form-field>
+
+                <!-- Notas -->
+                <mat-form-field appearance="outline" class="col-span-2">
+                  <mat-label>Notas adicionales</mat-label>
+                  <input matInput formControlName="notes" placeholder="Ej. Sin factura, auditoría física..." />
+                </mat-form-field>
+              </div>
+
+              <div class="item-actions">
+                <button mat-button color="warn" type="button" (click)="removeItem(i)" [disabled]="items.length === 1">
+                  <mat-icon>delete</mat-icon> Eliminar
                 </button>
               </div>
-            }
-          </div>
-        </mat-card-content>
-      </mat-card>
+            </mat-card-content>
+          </mat-card>
+        }
+      </div>
 
-      <div class="form-actions">
+      <div class="form-actions mt-4">
         <button mat-button type="button" routerLink="/stocks">Cancelar</button>
         <button mat-raised-button color="primary" type="submit" [disabled]="form.invalid || saving()">
           @if (saving()) {

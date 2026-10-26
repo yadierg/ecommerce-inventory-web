@@ -94,13 +94,13 @@ export class PoFormComponent implements OnInit {
     }
   }
 
-  loadCatalogs() {
+    loadCatalogs() {
     this.suppliersSvc.findAll().subscribe(data => this.suppliers.set(data));
     this.warehousesSvc.findAll().subscribe(data => this.warehouses.set(data));
-    // Cargamos los productos que ya existen en el inventario
-    this.stocksSvc.findAll().subscribe(data => {
-      // Filtramos duplicados por ID de producto
-      const unique = Array.from(new Map(data.map(s => [s.productId, s])).values());
+    
+    // 👈 CORRECCIÓN AQUÍ: acceder a 'res.data' en lugar de 'data'
+    this.stocksSvc.findAll({ limit: 1000 } as any).subscribe(res => {
+      const unique = Array.from(new Map(res.data.map(s => [s.productId, s])).values());
       this.availableProducts.set(unique);
     });
   }

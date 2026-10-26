@@ -1,14 +1,14 @@
 <div class="page">
   <div class="page-header">
     <h1 class="page-title">Categorías</h1>
-    <p class="page-subtitle">Organiza tus productos en categorías para el catálogo</p>
+    <p class="page-subtitle">Organiza tu catálogo de productos</p>
   </div>
 
   <div class="grid-layout">
-    <!-- Formulario de Creación -->
+    <!-- Formulario -->
     <mat-card class="form-card">
       <mat-card-header>
-        <mat-card-title>Nueva Categoría</mat-card-title>
+        <mat-card-title>{{ editMode() ? 'Editar Categoría' : 'Nueva Categoría' }}</mat-card-title>
       </mat-card-header>
       <mat-card-content>
         <form [formGroup]="form" (ngSubmit)="onSubmit()" class="flex-col">
@@ -22,6 +22,12 @@
           </mat-form-field>
 
           <mat-form-field appearance="outline">
+            <mat-label>Slug (URL)</mat-label>
+            <input matInput formControlName="slug" placeholder="paneles-solares" />
+            <mat-hint>Dejar en blanco para autogenerar</mat-hint>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
             <mat-label>Descripción</mat-label>
             <textarea matInput formControlName="description" rows="2"></textarea>
           </mat-form-field>
@@ -30,26 +36,44 @@
             Categoría Activa
           </mat-slide-toggle>
 
-          <button mat-raised-button color="primary" type="submit" [disabled]="saving()">
-            @if (saving()) {
-              <mat-spinner diameter="20" />
-            } @else {
-              Guardar Categoría
+          <div class="form-actions">
+            @if (editMode()) {
+              <button mat-button type="button" (click)="cancelEdit()">Cancelar</button>
             }
-          </button>
+            <button mat-raised-button color="primary" type="submit" [disabled]="saving()">
+              @if (saving()) {
+                <mat-spinner diameter="20" />
+              } @else {
+                {{ editMode() ? 'Guardar Cambios' : 'Crear Categoría' }}
+              }
+            </button>
+          </div>
         </form>
       </mat-card-content>
     </mat-card>
 
-    <!-- Tabla de Categorías -->
+    <!-- Tabla -->
     <mat-card class="table-card">
       <mat-card-content>
+        
+        <!-- FILTRO -->
+        <div class="filter-bar">
+          <mat-form-field appearance="outline" class="search-field">
+            <mat-label>Buscar categoría</mat-label>
+            <input matInput [value]="searchQuery()" (input)="searchQuery.set($any($event.target).value)" />
+            <mat-icon matSuffix>search</mat-icon>
+          </mat-form-field>
+          <button mat-icon-button (click)="clearFilters()" matTooltip="Limpiar filtro">
+            <mat-icon>filter_alt_off</mat-icon>
+          </button>
+        </div>
+
         @if (loading()) {
           <div class="spinner-wrap"><mat-spinner diameter="40" /></div>
-        } @else if (categories().length === 0) {
-          <div class="empty">No hay categorías creadas.</div>
+        } @else if (filteredCategories().length === 0) {
+          <div class="empty">No se encontraron categorías.</div>
         } @else {
-          <table mat-table [dataSource]="categories()" class="full-width">
+          <table mat-table [dataSource]="filteredCategories()" class="full-width">
             
             <ng-container matColumnDef="name">
               <th mat-header-cell *matHeaderCellDef>Nombre</th>
@@ -72,6 +96,18 @@
                 <span class="badge" [class.active]="c.isActive" [class.inactive]="!c.isActive">
                   {{ c.isActive ? 'Activa' : 'Inactiva' }}
                 </span>
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="actions">
+              <th mat-header-cell *matHeaderCellDef class="text-right">Acciones</th>
+              <td mat-cell *matCellDef="let c" class="text-right">
+                <button mat-icon-button color="primary" (click)="editCategory(c)" matTooltip="Editar">
+                  <mat-icon>edit</mat-icon>
+                </button>
+                <button mat-icon-button color="warn" (click)="deleteCategory(c)" matTooltip="Eliminar">
+                  <mat-icon>delete</mat-icon>
+                </button>
               </td>
             </ng-container>
 

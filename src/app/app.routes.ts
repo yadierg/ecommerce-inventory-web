@@ -140,6 +140,14 @@ export const routes: Routes = [
         path: 'stocks/initial',
         loadComponent: () => import('./features/stocks/initial-stock/initial-stock.component').then(m => m.InitialStockComponent)
       },
+       {
+        path: 'profile',
+        loadComponent: () => import('./features/profile/profile.component').then(m => m.ProfileComponent) 
+       },
+      {
+        path: 'settings', 
+        loadComponent: () => import('./features/settings/settings.component').then(m => m.SettingsComponent)
+      },
     ],
   },
   { path: '**', redirectTo: 'dashboard' },

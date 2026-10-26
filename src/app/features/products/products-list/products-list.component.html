@@ -1,72 +1,172 @@
 <div class="page">
   <div class="page-header">
     <h1 class="page-title">Catálogo de Productos</h1>
-    <p class="page-subtitle">Crea productos para luego cargarlos al inventario</p>
+    <p class="page-subtitle">Gestiona los productos de tu tienda</p>
   </div>
 
   <div class="grid-layout">
-    <!-- Formulario de Creación -->
+    <!-- Formulario -->
     <mat-card class="form-card">
-      <mat-card-header><mat-card-title>Nuevo Producto</mat-card-title></mat-card-header>
+      <mat-card-header>
+        <mat-card-title>{{ editMode() ? 'Editar Producto' : 'Nuevo Producto' }}</mat-card-title>
+      </mat-card-header>
       <mat-card-content>
         <form [formGroup]="form" (ngSubmit)="onSubmit()" class="flex-col">
-          <mat-form-field appearance="outline">
-            <mat-label>Nombre del Producto *</mat-label>
-            <input matInput formControlName="name" />
-          </mat-form-field>
+          
+          <div class="grid-2">
+            <mat-form-field appearance="outline">
+              <mat-label>Nombre *</mat-label>
+              <input matInput formControlName="name" />
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>SKU *</mat-label>
+              <input matInput formControlName="sku" />
+            </mat-form-field>
+          </div>
 
-          <mat-form-field appearance="outline">
-            <mat-label>SKU (Código) *</mat-label>
-            <input matInput formControlName="sku" placeholder="PNL-400W" />
-          </mat-form-field>
+          <div class="grid-2">
+            <mat-form-field appearance="outline">
+              <mat-label>Precio Venta *</mat-label>
+              <input matInput type="number" formControlName="price" />
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Costo Compra</mat-label>
+              <input matInput type="number" formControlName="costPrice" />
+            </mat-form-field>
+          </div>
 
-          <mat-form-field appearance="outline">
-            <mat-label>Precio *</mat-label>
-            <input matInput type="number" formControlName="price" />
-          </mat-form-field>
+          <div class="grid-2">
+            <mat-form-field appearance="outline">
+              <mat-label>Stock Global</mat-label>
+              <input matInput type="number" formControlName="stock" />
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Alerta Stock Bajo</mat-label>
+              <input matInput type="number" formControlName="lowStockThreshold" />
+            </mat-form-field>
+          </div>
 
           <mat-form-field appearance="outline">
             <mat-label>Categoría</mat-label>
             <mat-select formControlName="categoryId">
+              <mat-option [value]="null">Sin categoría</mat-option>
               @for (cat of categories(); track cat.id) {
                 <mat-option [value]="cat.id">{{ cat.name }}</mat-option>
               }
             </mat-select>
           </mat-form-field>
 
-          <button mat-raised-button color="primary" type="submit" [disabled]="saving()">
-            {{ saving() ? 'Guardando...' : 'Crear Producto' }}
-          </button>
+          <mat-form-field appearance="outline">
+            <mat-label>Marca</mat-label>
+            <input matInput formControlName="brand" />
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Descripción</mat-label>
+            <textarea matInput formControlName="description" rows="2"></textarea>
+          </mat-form-field>
+
+          <div class="toggles">
+            <mat-slide-toggle formControlName="isActive" color="primary">Activo</mat-slide-toggle>
+            <mat-slide-toggle formControlName="isFeatured" color="primary">Destacado</mat-slide-toggle>
+          </div>
+
+          <div class="form-actions">
+            @if (editMode()) {
+              <button mat-button type="button" (click)="cancelEdit()">Cancelar</button>
+            }
+            <button mat-raised-button color="primary" type="submit" [disabled]="saving()">
+              @if (saving()) {
+                <mat-spinner diameter="20" />
+              } @else {
+                {{ editMode() ? 'Guardar Cambios' : 'Crear Producto' }}
+              }
+            </button>
+          </div>
         </form>
       </mat-card-content>
     </mat-card>
 
-    <!-- Tabla de Productos -->
+    <!-- Tabla -->
     <mat-card class="table-card">
       <mat-card-content>
+        
+        <!-- BARRA DE FILTROS -->
+        <div class="filter-bar">
+          <mat-form-field appearance="outline" class="search-field">
+            <mat-label>Buscar por nombre, SKU o marca</mat-label>
+            <input matInput [value]="searchQuery()" (input)="searchQuery.set($any($event.target).value)" />
+            <mat-icon matSuffix>search</mat-icon>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="filter-field">
+            <mat-label>Categoría</mat-label>
+            <mat-select [value]="categoryFilter()" (selectionChange)="categoryFilter.set($event.value)">
+              <mat-option [value]="null">Todas</mat-option>
+              @for (cat of categories(); track cat.id) {
+                <mat-option [value]="cat.id">{{ cat.name }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+
+          <mat-slide-toggle [checked]="showInactive()" (change)="showInactive.set($event.checked)" color="primary">
+            Mostrar inactivos
+          </mat-slide-toggle>
+
+          <button mat-icon-button (click)="clearFilters()" matTooltip="Limpiar filtros">
+            <mat-icon>filter_alt_off</mat-icon>
+          </button>
+        </div>
+
         @if (loading()) {
-          <p>Cargando productos...</p>
+          <div class="spinner-wrap"><mat-spinner diameter="40" /></div>
+        } @else if (filteredProducts().length === 0) {
+          <div class="empty">No se encontraron productos con esos filtros.</div>
         } @else {
-          <table mat-table [dataSource]="products()" class="full-width">
+          <table mat-table [dataSource]="filteredProducts()" class="full-width">
+            
             <ng-container matColumnDef="sku">
               <th mat-header-cell *matHeaderCellDef>SKU</th>
               <td mat-cell *matCellDef="let p"><strong>{{ p.sku }}</strong></td>
             </ng-container>
+
             <ng-container matColumnDef="name">
               <th mat-header-cell *matHeaderCellDef>Producto</th>
-              <td mat-cell *matCellDef="let p">{{ p.name }}</td>
+              <td mat-cell *matCellDef="let p">
+                {{ p.name }}
+                <div class="text-muted small">{{ p.brand }}</div>
+              </td>
             </ng-container>
+
+            <ng-container matColumnDef="category">
+              <th mat-header-cell *matHeaderCellDef>Categoría</th>
+              <td mat-cell *matCellDef="let p">{{ p.category?.name || '—' }}</td>
+            </ng-container>
+
             <ng-container matColumnDef="price">
               <th mat-header-cell *matHeaderCellDef>Precio</th>
               <td mat-cell *matCellDef="let p">{{ p.price | currency }}</td>
             </ng-container>
+
             <ng-container matColumnDef="stock">
-              <th mat-header-cell *matHeaderCellDef>Stock Global</th>
-              <td mat-cell *matCellDef="let p">{{ p.stock }}</td>
+              <th mat-header-cell *matHeaderCellDef>Stock</th>
+              <td mat-cell *matCellDef="let p">
+                <span class="badge" [class.active]="p.stock > p.lowStockThreshold" [class.inactive]="p.stock <= p.lowStockThreshold">
+                  {{ p.stock }} uds.
+                </span>
+              </td>
             </ng-container>
+
             <ng-container matColumnDef="actions">
-              <th mat-header-cell *matHeaderCellDef>ID (para Carga)</th>
-              <td mat-cell *matCellDef="let p"><small class="text-muted">{{ p.id }}</small></td>
+              <th mat-header-cell *matHeaderCellDef class="text-right">Acciones</th>
+              <td mat-cell *matCellDef="let p" class="text-right">
+                <button mat-icon-button color="primary" (click)="editProduct(p)" matTooltip="Editar">
+                  <mat-icon>edit</mat-icon>
+                </button>
+                <button mat-icon-button color="warn" (click)="deleteProduct(p)" matTooltip="Eliminar">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </td>
             </ng-container>
 
             <tr mat-header-row *matHeaderRowDef="columns"></tr>

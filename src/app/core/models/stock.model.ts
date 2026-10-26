@@ -7,13 +7,18 @@ export interface Stock {
   reservedQuantity?: number;
   availableQuantity?: number;
   minStock?: number;
-  maxStock?: number;
+  maxStock?: number;        // 👈 Ya lo tenías
+  location?: string;        // 👈 AÑADIR ESTO
+  shelf?: string;           // 👈 Opcional
+  bin?: string;             // 👈 Opcional
+  notes?: string;           // 👈 AÑADIR ESTO
   lastMovementAt?: string;
   createdAt: string;
   updatedAt: string;
   warehouse?: { id: string; name: string; code: string };
   product?: { id: string; name: string; sku?: string };
 }
+
 
 export interface CreateStockDto {
   warehouseId: string;

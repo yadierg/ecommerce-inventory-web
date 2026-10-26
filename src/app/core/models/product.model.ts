@@ -18,6 +18,7 @@ export interface Product {
   slug: string;
   sku: string;
   description?: string;
+  shortDescription?: string;
   price: number;
   comparePrice?: number;
   costPrice?: number;
@@ -27,11 +28,14 @@ export interface Product {
   brand?: string;
   images: string[];
   mainImage?: string;
+  weight?: number;
+  dimensions?: any;
   isActive: boolean;
   isFeatured: boolean;
-  soldCount: number;
+  isDigital: boolean;
   createdAt: string;
   updatedAt: string;
+  category?: Category;
 }
 
 export interface CreateProductDto {
@@ -40,11 +44,20 @@ export interface CreateProductDto {
   price: number;
   slug?: string;
   description?: string;
+  shortDescription?: string;
+  comparePrice?: number;
   costPrice?: number;
   stock?: number;
   lowStockThreshold?: number;
   categoryId?: string;
   brand?: string;
+  images?: string[];
+  mainImage?: string;
+  weight?: number;
+  dimensions?: any;
   isActive?: boolean;
   isFeatured?: boolean;
+  isDigital?: boolean;
+  metaTitle?: string;
+  metaDescription?: string;
 }

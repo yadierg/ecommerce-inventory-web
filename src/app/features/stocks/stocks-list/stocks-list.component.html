@@ -5,7 +5,7 @@
       <p class="page-subtitle">Controla las existencias por almacén</p>
     </div>
     <div class="header-actions">
-       <button mat-stroked-button color="primary" routerLink="/stocks/initial">
+      <button mat-stroked-button color="primary" routerLink="/stocks/initial">
         <mat-icon>upload_file</mat-icon>
         Carga Inicial
       </button>
@@ -13,7 +13,6 @@
         <mat-icon>swap_horiz</mat-icon>
         Transferir Stock
       </button>
-
     </div>
   </div>
 
@@ -107,7 +106,10 @@
         <ng-container matColumnDef="actions">
           <th mat-header-cell *matHeaderCellDef class="text-right">Acciones</th>
           <td mat-cell *matCellDef="let s" class="text-right">
-            <button mat-icon-button color="primary" (click)="goToAdjust(s)" matTooltip="Ajustar stock">
+            <button mat-icon-button color="primary" (click)="editStock(s)" matTooltip="Editar Mínimo / Ubicación">
+              <mat-icon>edit</mat-icon>
+            </button>
+            <button mat-icon-button color="accent" (click)="goToAdjust(s)" matTooltip="Ajustar stock (Entrada/Salida)">
               <mat-icon>tune</mat-icon>
             </button>
           </td>

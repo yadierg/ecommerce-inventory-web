@@ -8,6 +8,8 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSelectModule } from '@angular/material/select';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatNativeDateModule } from '@angular/material/core';
 
 import { WarehousesService } from '../../../core/services/warehouses.service';
 import { ProductsService } from '../../../core/services/products.service';
@@ -29,6 +31,8 @@ import { Product } from '../../../core/models/product.model';
     MatIconModule,
     MatSelectModule,
     MatProgressSpinnerModule,
+    MatDatepickerModule,
+    MatNativeDateModule,
   ],
   templateUrl: './initial-stock.component.html',
   styleUrls: ['./initial-stock.component.scss']
@@ -71,7 +75,7 @@ export class InitialStockComponent implements OnInit {
       this.productsSvc.findAll({ limit: 100 }).subscribe(prodRes => {
         this.products.set(prodRes.data);
         this.loading.set(false);
-        this.addItem(); // Añadir una fila por defecto
+        this.addItem();
       });
     });
   }
@@ -80,7 +84,11 @@ export class InitialStockComponent implements OnInit {
     this.items.push(this.fb.group({
       productId: ['', Validators.required],
       quantity: [1, [Validators.required, Validators.min(0.01)]],
-      unitCost: [0]
+      unitCost: [null],
+      lotNumber: [''],
+      location: [''],
+      estimatedAcquisitionDate: [null],
+      notes: ['']
     }));
   }
 
@@ -100,11 +108,34 @@ export class InitialStockComponent implements OnInit {
     this.saving.set(true);
     const formValue = this.form.value;
 
+    const formattedItems = (formValue.items || []).map((item: any) => {
+      // Construimos el objeto base solo con lo requerido
+      const cleanItem: any = {
+        productId: item.productId,
+        quantity: Number(item.quantity),
+      };
+
+      // Añadimos campos opcionales SOLO si tienen valor
+      if (item.unitCost != null && item.unitCost !== '') cleanItem.unitCost = Number(item.unitCost);
+      if (item.lotNumber) cleanItem.lotNumber = item.lotNumber;
+      if (item.location) cleanItem.location = item.location;
+      if (item.notes) cleanItem.notes = item.notes;
+      
+      if (item.estimatedAcquisitionDate) {
+        const d = new Date(item.estimatedAcquisitionDate);
+        cleanItem.estimatedAcquisitionDate = d.toISOString().split('T')[0];
+      }
+
+      return cleanItem;
+    });
+
     const payload = {
       warehouseId: formValue.warehouseId,
-      reason: formValue.reason,
-      items: formValue.items
+      reason: formValue.reason || 'Carga inicial de inventario',
+      items: formattedItems
     };
+
+    console.log('Payload enviado al backend:', JSON.stringify(payload, null, 2)); // 👈 Para debug
 
     this.initialStockSvc.load(payload as any).subscribe({
       next: (res) => {
@@ -113,8 +144,11 @@ export class InitialStockComponent implements OnInit {
       },
       error: (err) => {
         this.saving.set(false);
+        console.error('Error del backend:', err.error); // 👈 Para ver el detalle
         if (err.status === 400 && Array.isArray(err.error?.message)) {
           this.notification.error(`Errores:\n${err.error.message.join('\n')}`);
+        } else if (err.status === 500) {
+          this.notification.error('Error interno del servidor. Revisa la consola.');
         } else {
           this.notification.error(err?.error?.message || 'Error al cargar inventario');
         }

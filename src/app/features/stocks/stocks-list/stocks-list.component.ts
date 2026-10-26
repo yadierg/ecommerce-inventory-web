@@ -12,11 +12,14 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 
 import { StocksService } from '../../../core/services/stocks.service';
 import { WarehousesService } from '../../../core/services/warehouses.service';
+import { NotificationService } from '../../../core/services/notification.service';
 import { Stock, StockFilters } from '../../../core/models/stock.model';
 import { Warehouse } from '../../../core/models/warehouse.model';
+import { StockEditDialogComponent } from '../stock-edit-dialog/stock-edit-dialog.component';
 
 @Component({
   selector: 'app-stocks-list',
@@ -24,6 +27,7 @@ import { Warehouse } from '../../../core/models/warehouse.model';
   imports: [
     RouterLink,
     ReactiveFormsModule,
+    NgClass,
     MatTableModule,
     MatPaginatorModule,
     MatSortModule,
@@ -34,8 +38,8 @@ import { Warehouse } from '../../../core/models/warehouse.model';
     MatSelectModule,
     MatFormFieldModule,
     MatTooltipModule,
+    MatDialogModule,
     DecimalPipe,
-    NgClass,
   ],
   templateUrl: './stocks-list.component.html',
   styleUrls: ['./stocks-list.component.scss']
@@ -44,6 +48,8 @@ export class StocksListComponent implements OnInit {
   private svc = inject(StocksService);
   private warehousesSvc = inject(WarehousesService);
   private router = inject(Router);
+  private dialog = inject(MatDialog);
+  private notification = inject(NotificationService);
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
@@ -52,7 +58,6 @@ export class StocksListComponent implements OnInit {
   dataSource = new MatTableDataSource<Stock>([]);
   warehouses = signal<Warehouse[]>([]);
   
-  // Filtros
   warehouseFilter = new FormControl<string | null>(null);
   statusFilter = new FormControl<string>('all');
 
@@ -62,7 +67,6 @@ export class StocksListComponent implements OnInit {
     this.loadWarehouses();
     this.loadStocks();
 
-    // Escuchar cambios en los filtros
     this.warehouseFilter.valueChanges.subscribe(() => this.loadStocks());
     this.statusFilter.valueChanges.subscribe(() => this.loadStocks());
   }
@@ -81,13 +85,19 @@ export class StocksListComponent implements OnInit {
       filters.warehouseId = this.warehouseFilter.value;
     }
 
-    const status = this.statusFilter.value;
-    if (status === 'low') filters.lowStock = true;
-    if (status === 'out') filters.outOfStock = true;
-
     this.svc.findAll(filters).subscribe({
-      next: (data) => {
-        this.dataSource.data = data;
+      next: (response) => {
+        let stocks = response.data;
+        const status = this.statusFilter.value;
+        
+        // Filtrado local estricto para alertas
+        if (status === 'low') {
+          stocks = stocks.filter(s => s.quantity > 0 && s.minStock !== undefined && s.minStock > 0 && s.quantity <= s.minStock);
+        } else if (status === 'out') {
+          stocks = stocks.filter(s => s.quantity === 0);
+        }
+
+        this.dataSource.data = stocks;
         this.dataSource.paginator = this.paginator;
         this.dataSource.sort = this.sort;
         this.loading.set(false);
@@ -103,11 +113,32 @@ export class StocksListComponent implements OnInit {
 
   getStatus(stock: Stock): 'out' | 'low' | 'ok' {
     if (stock.quantity === 0) return 'out';
-    if (stock.minStock && stock.quantity <= stock.minStock) return 'low';
+    if (stock.minStock && stock.minStock > 0 && stock.quantity <= stock.minStock) return 'low';
     return 'ok';
   }
 
   goToAdjust(stock: Stock) {
     this.router.navigate(['/stocks', stock.id, 'adjust']);
+  }
+
+  editStock(stock: Stock) {
+    const ref = this.dialog.open(StockEditDialogComponent, {
+      width: '400px',
+      data: { stock }
+    });
+
+    ref.afterClosed().subscribe(result => {
+      if (!result) return;
+
+      this.svc.update(stock.id, result).subscribe({
+        next: () => {
+          this.notification.success('Stock actualizado correctamente');
+          this.loadStocks();
+        },
+        error: (err: any) => {
+          this.notification.error(err?.error?.message || 'Error al actualizar stock');
+        }
+      });
+    });
   }
 }

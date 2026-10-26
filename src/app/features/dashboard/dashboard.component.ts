@@ -6,6 +6,8 @@ import { DecimalPipe, DatePipe, NgClass, UpperCasePipe } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTableModule } from '@angular/material/table';
+import { MatMenuModule } from '@angular/material/menu'; // 👈 IMPORTACIÓN CLAVE
+import { MatButtonModule } from '@angular/material/button'; // 👈 NECESARIO PARA EL BOTÓN
 import { BaseChartDirective } from 'ng2-charts';
 import { ChartConfiguration, ChartData } from 'chart.js';
 
@@ -34,6 +36,8 @@ interface StatCard {
     MatIconModule,
     MatProgressSpinnerModule,
     MatTableModule,
+    MatMenuModule,      // 👈 AÑADIDO
+    MatButtonModule,    // 👈 AÑADIDO
     DecimalPipe,
     DatePipe,
     NgClass,
@@ -55,6 +59,10 @@ export class DashboardComponent implements OnInit {
   recentMovements = signal<Movement[]>([]);
   lowStockAlerts = signal<Stock[]>([]);
   
+  // Filtro de fechas
+  currentRange = signal('30d');
+  currentRangeLabel = signal('Últimos 30 días');
+
   movementColumns = ['type', 'product', 'quantity', 'date'];
 
   // Configuración del Gráfico de Líneas
@@ -64,7 +72,7 @@ export class DashboardComponent implements OnInit {
       {
         data: [],
         label: 'Movimientos',
-        borderColor: '#C91147', // Tu color corporativo
+        borderColor: '#C91147',
         backgroundColor: 'rgba(201, 17, 71, 0.1)',
         pointBackgroundColor: '#C91147',
         pointBorderColor: '#fff',
@@ -130,6 +138,14 @@ export class DashboardComponent implements OnInit {
     this.loadData();
   }
 
+  setRange(range: string) {
+    this.currentRange.set(range);
+    const labels: any = { '7d': 'Últimos 7 días', '30d': 'Últimos 30 días', '90d': 'Últimos 90 días' };
+    this.currentRangeLabel.set(labels[range]);
+    // Aquí podrías recargar los datos si el backend soportara filtros de fecha
+    // this.loadData(range);
+  }
+
   loadData() {
     const safe = <T>(obs: any) => obs.pipe(catchError(() => of(null)));
 
@@ -140,7 +156,7 @@ export class DashboardComponent implements OnInit {
       suppliers: safe(this.suppliersSvc.stats()),
       purchaseOrders: safe(this.purchaseOrdersSvc.stats()),
       recentMovements: safe(this.movementsSvc.findAll()),
-      lowStock: safe(this.stocksSvc.findAll({ lowStock: true })),
+      allStocks: safe(this.stocksSvc.findAll({ limit: 1000 } as any)), 
     }).subscribe({
       next: (r: any) => {
         this.cards.set([
@@ -162,7 +178,7 @@ export class DashboardComponent implements OnInit {
             label: 'Movimientos',
             value: r.movements?.total ?? 0,
             icon: 'swap_horiz',
-            color: '#C91147', // Color corporativo
+            color: '#C91147',
             route: '/movements',
           },
           {
@@ -174,29 +190,48 @@ export class DashboardComponent implements OnInit {
           },
         ]);
 
-        // Poblar gráfico donut
-        this.donutChartData.update(data => {
-          data.datasets[0].data = [
-            (r.stocks?.total ?? 0) - (r.stocks?.lowStock ?? 0) - (r.stocks?.outOfStock ?? 0),
-            r.stocks?.lowStock ?? 0,
-            r.stocks?.outOfStock ?? 0
-          ];
-          return { ...data };
-        });
+        // Gráfico Donut
+        if (r.allStocks && r.allStocks.data) {
+          const stocks = r.allStocks.data;
+          let outOfStock = 0;
+          let lowStock = 0;
+          let available = 0;
 
-        // Poblar tabla de movimientos recientes
-        if (r.recentMovements && Array.isArray(r.recentMovements)) {
-          this.recentMovements.set(r.recentMovements.slice(0, 5));
+          stocks.forEach((s: any) => {
+            if (s.quantity === 0) {
+              outOfStock++;
+            } else if (s.minStock && s.minStock > 0 && s.quantity <= s.minStock) {
+              lowStock++;
+            } else {
+              available++;
+            }
+          });
+
+          this.donutChartData.update(data => {
+            data.datasets[0].data = [available, lowStock, outOfStock];
+            return { ...data };
+          });
         }
 
-        // Poblar alertas de bajo stock
-        if (r.lowStock && Array.isArray(r.lowStock)) {
-          this.lowStockAlerts.set(r.lowStock.slice(0, 4));
+        // Movimientos recientes
+        if (r.recentMovements) {
+          if (Array.isArray(r.recentMovements)) {
+            this.recentMovements.set(r.recentMovements.slice(0, 5));
+          } else if (r.recentMovements.data) {
+            this.recentMovements.set(r.recentMovements.data.slice(0, 5));
+          }
         }
 
-        // Simulación de datos para el gráfico de línea (ya que no hay endpoint de histórico)
+        // Alertas de bajo stock
+        if (r.allStocks && r.allStocks.data) {
+          const alerts = r.allStocks.data.filter((s: any) => {
+            return s.quantity === 0 || (s.minStock && s.minStock > 0 && s.quantity <= s.minStock);
+          }).sort((a: any, b: any) => a.quantity - b.quantity);
+          
+          this.lowStockAlerts.set(alerts.slice(0, 4));
+        }
+
         this.generateMockLineChart();
-
         this.loading.set(false);
       },
       error: () => this.loading.set(false),

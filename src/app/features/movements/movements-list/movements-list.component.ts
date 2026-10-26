@@ -86,9 +86,9 @@ export class MovementsListComponent implements OnInit {
     if (this.warehouseFilter.value) {
       filters.warehouseId = this.warehouseFilter.value;
     }
-    if (this.typeFilter.value && this.typeFilter.value !== 'all') {
-      filters.type = this.typeFilter.value as MovementType;
-    }
+    /*  if (this.typeFilter.value && this.typeFilter.value !== 'all') {
+        filters.type = this.typeFilter.value as MovementType;
+      } */
     if (this.dateFromFilter.value) {
       filters.from = this.dateFromFilter.value.toISOString();
     }

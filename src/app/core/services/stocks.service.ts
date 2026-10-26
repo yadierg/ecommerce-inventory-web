@@ -10,6 +10,12 @@ import {
   TransferStockDto,
 } from '../models/stock.model';
 
+// 👈 Nueva interfaz para la respuesta paginada
+export interface PaginatedStockResponse {
+  data: Stock[];
+  meta: { total: number; page: number; limit: number; totalPages: number };
+}
+
 @Injectable({ providedIn: 'root' })
 export class StocksService {
   private http = inject(HttpClient);
@@ -24,7 +30,8 @@ export class StocksService {
     if (filters.outOfStock !== undefined)
       params = params.set('outOfStock', String(filters.outOfStock));
 
-    return this.http.get<Stock[]>(this.base, { params });
+    // 👈 Ahora esperamos un objeto paginado
+    return this.http.get<PaginatedStockResponse>(this.base, { params });
   }
 
   findOne(id: string) {

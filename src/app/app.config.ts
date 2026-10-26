@@ -7,6 +7,8 @@ import { routes } from './app.routes';
 import { jwtInterceptor } from './core/interceptors/jwt.interceptor';
 import { tenantInterceptor } from './core/interceptors/tenant.interceptor';
 import { errorInterceptor } from './core/interceptors/error.interceptor';
+import { Chart, registerables } from 'chart.js';
+Chart.register(...registerables);
 
 export const appConfig: ApplicationConfig = {
   providers: [
