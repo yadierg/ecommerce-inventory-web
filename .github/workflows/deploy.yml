@@ -2,7 +2,7 @@ name: 🚀 Build, Test & Deploy
 
 on:
   push:
-    branches: [main, develop]
+    branches: [main]
   pull_request:
     branches: [main]
 
@@ -12,10 +12,10 @@ concurrency:
 
 jobs:
   # ============================================
-  # JOB 1: Build y Tests
+  # JOB 1: Build
   # ============================================
   build:
-    name: Build & Test
+    name: Build
     runs-on: ubuntu-latest
     timeout-minutes: 15
 
@@ -49,7 +49,7 @@ jobs:
     name: Deploy to VPS
     needs: build
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' && github.ref == 'refs/heads/mainif: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
 
     steps:
       - name: 🔐 Setup SSH
