@@ -1,31 +1,39 @@
 .layout {
   display: flex;
+  flex-direction: column; /* 👈 Columna: Header arriba, resto abajo */
   height: 100vh;
   width: 100vw;
   overflow: hidden;
   background: var(--bg-app);
-  position: relative; /* Necesario para el overlay absoluto */
+}
+
+.header-wrapper {
+  flex-shrink: 0;
+  width: 100%;
+  z-index: 30; /* Encima del sidebar en móviles */
+}
+
+.body-layout {
+  display: flex;
+  flex: 1; /* Ocupa el espacio restante */
+  overflow: hidden;
+  position: relative;
 }
 
 .sidebar-wrapper {
   width: 260px;
   flex-shrink: 0;
   transition: width 0.3s ease, margin-left 0.3s ease;
-  z-index: 30; /* Sidebar por encima del overlay */
+  z-index: 20;
+  background: var(--bg-card);
+  border-right: 1px solid var(--border);
 }
 
+/* Sidebar cerrado en escritorio */
 .sidebar-wrapper.closed {
   width: 0;
   overflow: hidden;
   margin-left: 0;
-}
-
-.content {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-  transition: all 0.3s ease;
 }
 
 .main {
@@ -41,19 +49,18 @@
 }
 
 @media (max-width: 1024px) {
-  /* Sidebar en móvil (deslizante) */
   .sidebar-wrapper {
     position: fixed;
-    top: 0;
+    top: 72px; /* 👈 Empieza DEBAJO del header (altura del header = 72px) */
     left: 0;
-    height: 100vh;
+    height: calc(100vh - 72px); /* Restamos la altura del header */
     width: 260px;
     transform: translateX(0);
     transition: transform 0.3s ease-in-out;
     box-shadow: 4px 0 15px rgba(0,0,0,0.2);
+    z-index: 25; /* Debajo del header (30) */
   }
 
-  /* Cuando está cerrado en móvil, se oculta a la izquierda */
   .sidebar-wrapper.closed {
     transform: translateX(-100%);
     width: 260px; 
@@ -63,13 +70,12 @@
     padding: 16px;
   }
 
-  /* Overlay visible solo en móvil y cuando el sidebar está abierto */
   .sidebar-overlay {
     display: block;
     position: fixed;
     inset: 0;
     background: rgba(0, 0, 0, 0.6);
-    z-index: 20; /* Debajo del sidebar (30) pero encima del contenido */
+    z-index: 22; /* Debajo del sidebar (25) y header (30) */
     opacity: 0;
     visibility: hidden;
     transition: opacity 0.3s, visibility 0.3s;
