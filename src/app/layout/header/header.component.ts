@@ -1,5 +1,5 @@
-import { Component, inject, signal, OnInit, EventEmitter, Output } from '@angular/core';
-import { Router, RouterLink } from '@angular/router'; // 👈 Añadir Router
+import { Component, inject, signal, OnInit, Output, EventEmitter } from '@angular/core';
+import { Router } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatMenuModule } from '@angular/material/menu';
@@ -10,7 +10,7 @@ import { AuthService } from '../../core/services/auth.service';
 @Component({
   selector: 'app-header',
   standalone: true,
-  imports: [MatIconModule, MatButtonModule, MatMenuModule, MatDividerModule, MatTooltipModule, RouterLink],
+  imports: [MatIconModule, MatButtonModule, MatMenuModule, MatDividerModule, MatTooltipModule],
   templateUrl: './header.component.html',
   styleUrls: ['./header.component.scss']
 })
@@ -20,12 +20,16 @@ export class HeaderComponent implements OnInit {
   
   user = this.authService.getUser();
   isDarkMode = signal(false);
-
-  @Output() dateRangeChanged = new EventEmitter<string>();
+  
+  @Output() toggleSidebar = new EventEmitter<void>();
 
   ngOnInit() {
     const savedTheme = localStorage.getItem('theme');
     this.setDarkMode(savedTheme === 'dark');
+  }
+
+  onToggleSidebar() {
+    this.toggleSidebar.emit();
   }
 
   toggleTheme() {
@@ -43,10 +47,6 @@ export class HeaderComponent implements OnInit {
       document.body.classList.remove('dark-theme');
       localStorage.setItem('theme', 'light');
     }
-  }
-
-  onDateFilter(range: string) {
-    this.dateRangeChanged.emit(range);
   }
 
   initials(): string {

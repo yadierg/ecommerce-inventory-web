@@ -1,27 +1,82 @@
 .layout {
   display: flex;
-  height: 100vh; /* Ocupa exactamente el alto de la ventana */
+  height: 100vh;
   width: 100vw;
   overflow: hidden;
+  background: var(--bg-app);
+  position: relative; /* Necesario para el overlay absoluto */
 }
 
 .sidebar-wrapper {
-  flex-shrink: 0;
   width: 260px;
-  height: 100%;
-  z-index: 10;
+  flex-shrink: 0;
+  transition: width 0.3s ease, margin-left 0.3s ease;
+  z-index: 30; /* Sidebar por encima del overlay */
+}
+
+.sidebar-wrapper.closed {
+  width: 0;
+  overflow: hidden;
+  margin-left: 0;
 }
 
 .content {
   flex: 1;
   display: flex;
   flex-direction: column;
-  min-width: 0; /* Previene que el contenido desborde el flexbox */
-  background-color: var(--bg-app, #f5f7fa);
+  min-width: 0;
+  transition: all 0.3s ease;
 }
 
 .main {
   flex: 1;
-  overflow-y: auto; /* Scroll solo en el área de contenido */
+  overflow-y: auto;
+  overflow-x: auto;
   padding: 24px;
+}
+
+/* Overlay */
+.sidebar-overlay {
+  display: none;
+}
+
+@media (max-width: 1024px) {
+  /* Sidebar en móvil (deslizante) */
+  .sidebar-wrapper {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    width: 260px;
+    transform: translateX(0);
+    transition: transform 0.3s ease-in-out;
+    box-shadow: 4px 0 15px rgba(0,0,0,0.2);
+  }
+
+  /* Cuando está cerrado en móvil, se oculta a la izquierda */
+  .sidebar-wrapper.closed {
+    transform: translateX(-100%);
+    width: 260px; 
+  }
+
+  .main {
+    padding: 16px;
+  }
+
+  /* Overlay visible solo en móvil y cuando el sidebar está abierto */
+  .sidebar-overlay {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    z-index: 20; /* Debajo del sidebar (30) pero encima del contenido */
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s, visibility 0.3s;
+  }
+
+  .sidebar-overlay.active {
+    opacity: 1;
+    visibility: visible;
+  }
 }

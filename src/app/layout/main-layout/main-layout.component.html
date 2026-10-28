@@ -1,9 +1,15 @@
 <div class="layout">
-  <app-sidebar class="sidebar-wrapper" />
+  <!-- Sidebar -->
+  <app-sidebar [class.closed]="!isSidebarOpen" class="sidebar-wrapper" />
+  
+  <!-- Contenido principal -->
   <div class="content">
-    <app-header />
+    <app-header (toggleSidebar)="toggleSidebar()" />
     <main class="main">
       <router-outlet />
     </main>
   </div>
+
+  <!-- Overlay para móviles (hace que al tocar fuera se cierre) -->
+  <div class="sidebar-overlay" [class.active]="isSidebarOpen" (click)="toggleSidebar()"></div>
 </div>

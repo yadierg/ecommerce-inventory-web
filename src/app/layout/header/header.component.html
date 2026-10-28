@@ -1,4 +1,9 @@
 <header class="header">
+  <!-- Botón Hamburguesa -->
+  <button mat-icon-button (click)="onToggleSidebar()" class="menu-btn">
+    <mat-icon>menu</mat-icon>
+  </button>
+
   <div class="search">
     <mat-icon class="search-icon">search</mat-icon>
     <input type="text" placeholder="Buscar..." class="search-input" />
@@ -6,21 +11,12 @@
 
   <div class="spacer"></div>
 
-  <!-- Filtro de Fecha (Calendario) -->
-  <button class="date-pill" [matMenuTriggerFor]="dateMenu">
-    <mat-icon>calendar_today</mat-icon>
-    <span>Últimos 30 días</span>
-    <mat-icon>expand_more</mat-icon>
-  </button>
-
-  <!-- Toggle Dark Mode -->
   <button mat-icon-button (click)="toggleTheme()" matTooltip="Cambiar tema" class="icon-btn">
     <mat-icon>{{ isDarkMode() ? 'light_mode' : 'dark_mode' }}</mat-icon>
   </button>
 
   <div class="v-divider"></div>
 
-  <!-- User Menu -->
   <button mat-button class="user-btn" [matMenuTriggerFor]="menu">
     <div class="avatar">{{ initials() }}</div>
     <div class="user-meta">
@@ -30,21 +26,12 @@
     <mat-icon class="caret">expand_more</mat-icon>
   </button>
 
-  <!-- MENÚ DE FECHAS -->
-  <mat-menu #dateMenu="matMenu">
-    <button mat-menu-item (click)="onDateFilter('7d')">Últimos 7 días</button>
-    <button mat-menu-item (click)="onDateFilter('30d')">Últimos 30 días</button>
-    <button mat-menu-item (click)="onDateFilter('90d')">Últimos 90 días</button>
-  </mat-menu>
-
-  <!-- MENÚ DE USUARIO -->
   <mat-menu #menu="matMenu" class="user-menu">
     <div class="menu-user">
       <strong>{{ user?.name }}</strong>
       <small>{{ user?.email }}</small>
     </div>
     <mat-divider />
-    <!-- 👈 AÑADIR ROUTERLINK -->
     <button mat-menu-item routerLink="/profile">
       <mat-icon>person</mat-icon>
       <span>Mi perfil</span>

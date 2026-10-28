@@ -10,4 +10,11 @@ import { HeaderComponent } from '../header/header.component';
   templateUrl: './main-layout.component.html',
   styleUrls: ['./main-layout.component.scss']
 })
-export class MainLayoutComponent {}
+export class MainLayoutComponent {
+  // Empezamos con el sidebar abierto
+  isSidebarOpen = true;
+
+  toggleSidebar() {
+    this.isSidebarOpen = !this.isSidebarOpen;
+  }
+}
