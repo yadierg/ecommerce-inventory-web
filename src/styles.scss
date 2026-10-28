@@ -136,3 +136,26 @@ tr.mat-mdc-row:hover {
   color: var(--text-primary) !important;
   transition: background-color 0.3s, color 0.3s;
 }
+
+/* =========================================
+   SCROLL HORIZONTAL PARA TABLAS EN MÓVILES
+   ========================================= */
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch; /* Suave en iOS */
+}
+
+/* Asegura que las tablas no se aplasten */
+.mat-mdc-table {
+  min-width: 800px; /* Fuerza un ancho mínimo para que aparezca el scroll */
+}
+
+/* Estilizar la barra de scroll para que se vea limpia */
+.table-responsive::-webkit-scrollbar {
+  height: 6px;
+}
+.table-responsive::-webkit-scrollbar-thumb {
+  background-color: var(--border);
+  border-radius: 3px;
+}
