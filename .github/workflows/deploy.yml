@@ -1,4 +1,4 @@
-name: 🚀 Build, Test & Deploy
+name: 🚀 Build & Deploy
 
 on:
   push:
@@ -12,10 +12,10 @@ concurrency:
 
 jobs:
   # ============================================
-  # JOB 1: Build
+  # JOB 1: Build y Tests
   # ============================================
   build:
-    name: Build
+    name: Build & Test
     runs-on: ubuntu-latest
     timeout-minutes: 15
 
@@ -43,7 +43,7 @@ jobs:
           retention-days: 7
 
   # ============================================
-  # JOB 2: Deploy al VPS (solo en push a main)
+  # JOB 2: Deploy al VPS (Solo push a main)
   # ============================================
   deploy:
     name: Deploy to VPS
