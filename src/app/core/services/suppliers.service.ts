@@ -1,43 +1,45 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
-import {
-  CreateSupplierDto,
-  Supplier,
-  SupplierStats,
-  UpdateSupplierDto,
-} from '../models/supplier.model';
+import { Supplier, CreateSupplierDto, UpdateSupplierDto, SupplierStats } from '../models/supplier.model';
+
+// 👇 Interfaz para respuestas paginadas
+export interface PaginatedSupplierResponse {
+  data: Supplier[];
+  meta: { total: number; page: number; limit: number; totalPages: number };
+}
 
 @Injectable({ providedIn: 'root' })
 export class SuppliersService {
   private http = inject(HttpClient);
-  private base = `${environment.apiUrl}/inventory/suppliers`;
+  private baseUrl = `${environment.apiUrl}/inventory/suppliers`;
 
   findAll() {
-    return this.http.get<Supplier[]>(this.base);
+    // 👇 Ahora esperamos la respuesta paginada
+    return this.http.get<PaginatedSupplierResponse>(this.baseUrl);
   }
 
   findOne(id: string) {
-    return this.http.get<Supplier>(`${this.base}/${id}`);
+    return this.http.get<Supplier>(`${this.baseUrl}/${id}`);
   }
 
   findByCode(code: string) {
-    return this.http.get<Supplier>(`${this.base}/code/${code}`);
+    return this.http.get<Supplier>(`${this.baseUrl}/code/${code}`);
   }
 
   stats() {
-    return this.http.get<SupplierStats>(`${this.base}/stats`);
+    return this.http.get<SupplierStats>(`${this.baseUrl}/stats`);
   }
 
   create(dto: CreateSupplierDto) {
-    return this.http.post<Supplier>(this.base, dto);
+    return this.http.post<Supplier>(this.baseUrl, dto);
   }
 
   update(id: string, dto: UpdateSupplierDto) {
-    return this.http.patch<Supplier>(`${this.base}/${id}`, dto);
+    return this.http.patch<Supplier>(`${this.baseUrl}/${id}`, dto);
   }
 
   remove(id: string) {
-    return this.http.delete<void>(`${this.base}/${id}`);
+    return this.http.delete<void>(`${this.baseUrl}/${id}`);
   }
 }

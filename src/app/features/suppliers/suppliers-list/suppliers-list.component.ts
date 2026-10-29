@@ -52,13 +52,18 @@ export class SuppliersListComponent implements OnInit {
   load() {
     this.loading.set(true);
     this.svc.findAll().subscribe({
-      next: (data) => {
-        this.dataSource.data = data;
+      next: (response) => {
+        // 👇 Extraemos el arreglo 'data' del objeto paginado
+        this.dataSource.data = response.data;
         this.dataSource.paginator = this.paginator;
         this.dataSource.sort = this.sort;
         this.loading.set(false);
       },
-      error: () => this.loading.set(false),
+      error: (err) => {
+        console.error('Error cargando proveedores:', err);
+        this.notification.error('No se pudieron cargar los proveedores');
+        this.loading.set(false);
+      }
     });
   }
 
