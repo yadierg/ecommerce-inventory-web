@@ -1,7 +1,7 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
-import { FormBuilder, FormArray, ReactiveFormsModule, Validators, FormControl } from '@angular/forms';
+import { FormBuilder, FormArray, ReactiveFormsModule, Validators, FormGroup, FormControl } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-// import { CurrencyPipe, AsyncPipe } from '@angular/common';
+import { CurrencyPipe, AsyncPipe } from '@angular/common';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
@@ -14,26 +14,26 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 
+import { Observable, of } from 'rxjs';
 import { map, startWith } from 'rxjs/operators';
-import { Observable } from 'rxjs';
 
 import { PurchaseOrdersService } from '../../../core/services/purchase-orders.service';
 import { SuppliersService } from '../../../core/services/suppliers.service';
 import { WarehousesService } from '../../../core/services/warehouses.service';
-import { StocksService } from '../../../core/services/stocks.service';
+import { ProductsService } from '../../../core/services/products.service';
 import { NotificationService } from '../../../core/services/notification.service';
 import { Supplier } from '../../../core/models/supplier.model';
 import { Warehouse } from '../../../core/models/warehouse.model';
-import { Stock } from '../../../core/models/stock.model';
+import { Product } from '../../../core/models/product.model';
 
 @Component({
   selector: 'app-po-form',
   standalone: true,
   imports: [
     ReactiveFormsModule,
-    // RouterLink,
-    // CurrencyPipe,
-    // AsyncPipe,
+    RouterLink,
+    CurrencyPipe,
+    AsyncPipe,
     MatFormFieldModule,
     MatInputModule,
     MatButtonModule,
@@ -54,7 +54,7 @@ export class PoFormComponent implements OnInit {
   private svc = inject(PurchaseOrdersService);
   private suppliersSvc = inject(SuppliersService);
   private warehousesSvc = inject(WarehousesService);
-  private stocksSvc = inject(StocksService);
+  private productsSvc = inject(ProductsService);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
   private notification = inject(NotificationService);
@@ -66,7 +66,10 @@ export class PoFormComponent implements OnInit {
 
   suppliers = signal<Supplier[]>([]);
   warehouses = signal<Warehouse[]>([]);
-  availableProducts = signal<Stock[]>([]);
+  products = signal<Product[]>([]);
+
+  // Almacena los observables de filtrado por cada fila
+  filteredProducts: Observable<Product[]>[] = [];
 
   form = this.fb.group({
     supplierId: ['', Validators.required],
@@ -94,14 +97,14 @@ export class PoFormComponent implements OnInit {
     }
   }
 
-    loadCatalogs() {
-    this.suppliersSvc.findAll().subscribe(data => this.suppliers.set(data));
+  loadCatalogs() {
+    // 👇 Extraemos .data de la respuesta paginada
+    this.suppliersSvc.findAll().subscribe(res => this.suppliers.set(res.data));
+    
     this.warehousesSvc.findAll().subscribe(data => this.warehouses.set(data));
     
-    // 👈 CORRECCIÓN AQUÍ: acceder a 'res.data' en lugar de 'data'
-    this.stocksSvc.findAll({ limit: 1000 } as any).subscribe(res => {
-      const unique = Array.from(new Map(res.data.map(s => [s.productId, s])).values());
-      this.availableProducts.set(unique);
+    this.productsSvc.findAll({ limit: 1000 }).subscribe(res => {
+      this.products.set(res.data);
     });
   }
 
@@ -117,12 +120,10 @@ export class PoFormComponent implements OnInit {
         });
 
         this.items.clear();
+        this.filteredProducts = [];
+
         po.items.forEach(item => {
-          this.items.push(this.fb.group({
-            productId: [item.productId, Validators.required],
-            quantity: [item.quantity, [Validators.required, Validators.min(1)]],
-            unitPrice: [item.unitPrice, [Validators.required, Validators.min(0)]]
-          }));
+          this.addItem(item.productId, item.quantity, item.unitPrice);
         });
 
         this.loading.set(false);
@@ -134,28 +135,61 @@ export class PoFormComponent implements OnInit {
     });
   }
 
-  // Filtro para el Autocomplete de productos
-  _filterProducts(value: string): Stock[] {
-    const filterValue = value.toLowerCase();
-    return this.availableProducts().filter(
-      p => p.product?.name?.toLowerCase().includes(filterValue) || 
-           p.productId.toLowerCase().includes(filterValue)
+  addItem(productId = '', quantity = 1, unitPrice = 0) {
+    const itemGroup = this.fb.group({
+      productSearch: ['', Validators.required], // Control de búsqueda visual
+      productId: [productId, Validators.required], // ID real para el backend
+      quantity: [quantity, [Validators.required, Validators.min(1)]],
+      unitPrice: [unitPrice, [Validators.required, Validators.min(0)]]
+    });
+
+    this.items.push(itemGroup);
+
+    // Configuramos el filtro reactivo para este item
+    const searchControl = itemGroup.get('productSearch') as FormControl;
+    const filtered = searchControl.valueChanges.pipe(
+      startWith(''),
+      map(value => this._filter(value || ''))
     );
+    this.filteredProducts.push(filtered);
+
+    // Si estamos editando, cargamos el nombre del producto
+    if (productId) {
+      const p = this.products().find(x => x.id === productId);
+      if (p) searchControl.setValue(p.name, { emitEvent: false });
+    }
   }
 
-  addItem() {
-    this.items.push(this.fb.group({
-      productId: ['', Validators.required],
-      quantity: [1, [Validators.required, Validators.min(1)]],
-      unitPrice: [0, [Validators.required, Validators.min(0)]]
-    }));
+  private _filter(value: string | Product): Product[] {
+    const name = typeof value === 'string' ? value : value?.name;
+    if (!name) return this.products();
+    const filterValue = name.toLowerCase();
+    return this.products().filter(p => 
+      p.name.toLowerCase().includes(filterValue) || 
+      p.sku.toLowerCase().includes(filterValue)
+    );
   }
 
   removeItem(index: number) {
     if (this.items.length > 1) {
       this.items.removeAt(index);
+      this.filteredProducts.splice(index, 1);
     }
   }
+
+  // Al seleccionar un producto, guardamos el ID
+  onProductSelected(index: number, product: Product) {
+    const group = this.items.at(index);
+    group.get('productId')?.setValue(product.id);
+    if (product.costPrice) {
+      group.get('unitPrice')?.setValue(product.costPrice);
+    }
+  }
+
+  displayProduct = (product: Product | string | null): string => {
+    if (!product) return '';
+    return typeof product === 'string' ? product : product.name;
+  };
 
   calculateTotal(): number {
     return this.items.controls.reduce((acc, item) => {
@@ -163,12 +197,6 @@ export class PoFormComponent implements OnInit {
       const price = item.get('unitPrice')?.value || 0;
       return acc + (qty * price);
     }, 0);
-  }
-
-  displayProduct = (id: string): string => {
-    if (!id) return '';
-    const p = this.availableProducts().find(x => x.productId === id);
-    return p ? `${p.product?.name || 'Producto'} (${id.slice(0,8)})` : id;
   }
 
   onSubmit() {
@@ -181,13 +209,19 @@ export class PoFormComponent implements OnInit {
     this.saving.set(true);
     const formValue = this.form.value;
 
+    const itemsPayload = (formValue.items || []).map((item: any) => ({
+      productId: item.productId,
+      quantity: item.quantity,
+      unitPrice: item.unitPrice
+    }));
+
     const payload: any = {
       supplierId: formValue.supplierId,
       warehouseId: formValue.warehouseId,
       orderDate: formValue.orderDate?.toISOString().split('T')[0],
       expectedDate: formValue.expectedDate ? formValue.expectedDate.toISOString().split('T')[0] : undefined,
       notes: formValue.notes || undefined,
-      items: formValue.items
+      items: itemsPayload
     };
 
     const obs = this.id ? this.svc.update(this.id, payload) : this.svc.create(payload);

@@ -1,17 +1,162 @@
-<mat-form-field appearance="outline" class="product-field">
-  <mat-label>Producto *</mat-label>
-  <input 
-    type="text" 
-    matInput 
-    formControlName="productId" 
-    [matAutocomplete]="autoProduct"
-    placeholder="Buscar producto..." />
-  
-  <mat-autocomplete #autoProduct="matAutocomplete" [displayWith]="displayProduct">
-    @for (p of availableProducts(); track p.productId) {
-      <mat-option [value]="p.productId">
-        {{ p.product?.name || 'Producto' }} ({{ p.productId.slice(0,8) }})
-      </mat-option>
-    }
-  </mat-autocomplete>
-</mat-form-field>
+<div class="page">
+  <div class="page-header">
+    <a mat-icon-button routerLink="/purchase-orders" matTooltip="Volver a la lista">
+      <mat-icon>arrow_back</mat-icon>
+    </a>
+    <div>
+      <h1 class="page-title">{{ isEdit() ? 'Editar Orden' : 'Nueva Orden de Compra' }}</h1>
+      <p class="page-subtitle">Selecciona el proveedor y los productos a pedir</p>
+    </div>
+  </div>
+
+  @if (loading()) {
+    <div class="spinner-wrap"><mat-spinner diameter="48" /></div>
+  } @else {
+    <form [formGroup]="form" (ngSubmit)="onSubmit()">
+      
+      <mat-card class="form-card">
+        <mat-card-header><mat-card-title>Datos de la Orden</mat-card-title></mat-card-header>
+        <mat-card-content>
+          <div class="grid-2">
+            <mat-form-field appearance="outline">
+              <mat-label>Proveedor *</mat-label>
+              <mat-select formControlName="supplierId">
+                @for (s of suppliers(); track s.id) {
+                  <mat-option [value]="s.id">{{ s.name }} ({{ s.code }})</mat-option>
+                }
+              </mat-select>
+              @if (form.get('supplierId')?.invalid && form.get('supplierId')?.touched) {
+                <mat-error>Selecciona un proveedor</mat-error>
+              }
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Almacén Destino *</mat-label>
+              <mat-select formControlName="warehouseId">
+                @for (w of warehouses(); track w.id) {
+                  <mat-option [value]="w.id">{{ w.name }}</mat-option>
+                }
+              </mat-select>
+              @if (form.get('warehouseId')?.invalid && form.get('warehouseId')?.touched) {
+                <mat-error>Selecciona un almacén</mat-error>
+              }
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Fecha de Orden *</mat-label>
+              <input matInput [matDatepicker]="pickerOrder" formControlName="orderDate" />
+              <mat-datepicker-toggle matIconSuffix [for]="pickerOrder"></mat-datepicker-toggle>
+              <mat-datepicker #pickerOrder></mat-datepicker>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Fecha Esperada</mat-label>
+              <input matInput [matDatepicker]="pickerExpected" formControlName="expectedDate" />
+              <mat-datepicker-toggle matIconSuffix [for]="pickerExpected"></mat-datepicker-toggle>
+              <mat-datepicker #pickerExpected></mat-datepicker>
+            </mat-form-field>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="form-card">
+        <mat-card-header class="items-header">
+          <mat-card-title>Productos</mat-card-title>
+          <button mat-stroked-button color="primary" type="button" (click)="addItem()">
+            <mat-icon>add</mat-icon> Añadir Producto
+          </button>
+        </mat-card-header>
+        <mat-card-content>
+          <div formArrayName="items" class="items-list">
+            @for (item of items.controls; track $index; let i = $index) {
+              <div [formGroupName]="i" class="item-row">
+                
+                <!-- Autocomplete conectado al FormControl -->
+                <mat-form-field appearance="outline" class="product-field">
+                  <mat-label>Buscar Producto *</mat-label>
+                  <input 
+                    type="text" 
+                    matInput 
+                    formControlName="productSearch"
+                    [matAutocomplete]="autoProduct"
+                    placeholder="Escribe el nombre o SKU..."
+                  />
+                  
+                  <mat-autocomplete 
+                    #autoProduct="matAutocomplete" 
+                    [displayWith]="displayProduct"
+                    (optionSelected)="onProductSelected(i, $event.option.value)"
+                  >
+                    <!-- Usamos el pipe async con el observable de la fila -->
+                    @for (p of (filteredProducts[i] | async); track p.id) {
+                      <mat-option [value]="p">
+                        <div style="display: flex; flex-direction: column;">
+                          <strong>{{ p.name }}</strong>
+                          <small>SKU: {{ p.sku }} | Precio: {{ p.price | currency }}</small>
+                        </div>
+                      </mat-option>
+                    }
+                  </mat-autocomplete>
+
+                  @if (item.get('productId')?.invalid && item.get('productId')?.touched) {
+                    <mat-error>Selecciona un producto</mat-error>
+                  }
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="qty-field">
+                  <mat-label>Cantidad *</mat-label>
+                  <input matInput type="number" formControlName="quantity" min="1" />
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="price-field">
+                  <mat-label>Precio Unit. *</mat-label>
+                  <input matInput type="number" formControlName="unitPrice" min="0" />
+                  <span matPrefix>$&nbsp;</span>
+                </mat-form-field>
+
+                <div class="item-subtotal">
+                  <span class="subtotal-label">Subtotal:</span>
+                  <span class="subtotal-value">
+                    {{ (item.get('quantity')?.value * item.get('unitPrice')?.value) | currency:'USD':'symbol':'1.2-2' }}
+                  </span>
+                </div>
+
+                <button mat-icon-button color="warn" type="button" (click)="removeItem(i)" [disabled]="items.length === 1" matTooltip="Eliminar ítem">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </div>
+            }
+          </div>
+
+          <mat-divider class="my-4"></mat-divider>
+
+          <div class="total-row">
+            <span class="total-label">Total Orden:</span>
+            <span class="total-value">{{ calculateTotal() | currency:'USD':'symbol':'1.2-2' }}</span>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="form-card">
+        <mat-card-content>
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Notas / Instrucciones</mat-label>
+            <textarea matInput formControlName="notes" rows="2" placeholder="Instrucciones para el proveedor..."></textarea>
+          </mat-form-field>
+        </mat-card-content>
+      </mat-card>
+
+      <div class="form-actions">
+        <button mat-button type="button" routerLink="/purchase-orders">Cancelar</button>
+        <button mat-raised-button color="primary" type="submit" [disabled]="form.invalid || saving()">
+          @if (saving()) {
+            <mat-spinner diameter="20" />
+          } @else {
+            {{ isEdit() ? 'Guardar Orden' : 'Crear Orden' }}
+          }
+        </button>
+      </div>
+
+    </form>
+  }
+</div>
