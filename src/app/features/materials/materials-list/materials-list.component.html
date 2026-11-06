@@ -1,0 +1,114 @@
+<div class="page">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Materiales</h1>
+      <p class="page-subtitle">Gestiona los materiales consumibles de tu inventario</p>
+    </div>
+    <a mat-raised-button color="primary" routerLink="/materials/new">
+      <mat-icon>add</mat-icon>
+      Nuevo Material
+    </a>
+  </div>
+
+  <div class="table-card">
+    <div class="toolbar">
+      <div class="search-box">
+        <mat-icon>search</mat-icon>
+        <input type="text" placeholder="Buscar por nombre o SKU..." 
+               [value]="searchQuery()" 
+               (input)="searchQuery.set($any($event.target).value)" />
+      </div>
+
+      <div class="filters">
+        <mat-form-field appearance="outline" class="filter-field">
+          <mat-label>Tipo de Producto</mat-label>
+          <mat-select [value]="typeFilter()" (selectionChange)="typeFilter.set($event.value)">
+            <mat-option [value]="null">Todos</mat-option>
+            @for (type of productTypes(); track type.id) {
+              <mat-option [value]="type.id">{{ type.name }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+
+        <button mat-icon-button (click)="clearFilters()" matTooltip="Limpiar filtros">
+          <mat-icon>filter_alt_off</mat-icon>
+        </button>
+      </div>
+    </div>
+
+    @if (loading()) {
+      <div class="spinner-wrap"><mat-spinner diameter="40" /></div>
+    } @else if (filteredMaterials().length === 0) {
+      <div class="empty">
+        <mat-icon>inventory_2</mat-icon>
+        <h3>No hay materiales</h3>
+        <p>Los materiales que agregues aparecerán aquí.</p>
+      </div>
+    } @else {
+      <div class="table-responsive">
+        <table mat-table [dataSource]="filteredMaterials()" matSort class="full-width">
+          
+          <ng-container matColumnDef="sku">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>SKU</th>
+            <td mat-cell *matCellDef="let m"><strong>{{ m.sku }}</strong></td>
+          </ng-container>
+
+          <ng-container matColumnDef="name">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Material</th>
+            <td mat-cell *matCellDef="let m">
+              {{ m.name }}
+              <div class="text-muted small">{{ m.brand }}</div>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="type">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Tipo</th>
+            <td mat-cell *matCellDef="let m">
+              <span class="badge">{{ m.productType?.name || '—' }}</span>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="avgCost">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header class="text-right">Costo Prom.</th>
+            <td mat-cell *matCellDef="let m" class="text-right">
+              {{ m.averageCost | currency }}
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="stock">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header class="text-right">Stock Mín.</th>
+            <td mat-cell *matCellDef="let m" class="text-right">
+              {{ m.minStock | number }}
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="status">
+            <th mat-header-cell *matHeaderCellDef>Estado</th>
+            <td mat-cell *matCellDef="let m">
+              <span class="badge" [ngClass]="m.isActive ? 'active' : 'inactive'">
+                {{ m.isActive ? 'Activo' : 'Inactivo' }}
+              </span>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="actions">
+            <th mat-header-cell *matHeaderCellDef class="text-right">Acciones</th>
+            <td mat-cell *matCellDef="let m" class="text-right">
+              <a mat-icon-button color="primary" [routerLink]="['/materials', m.id, 'edit']" matTooltip="Editar">
+                <mat-icon>edit</mat-icon>
+              </a>
+              <button mat-icon-button color="warn" (click)="deleteMaterial(m)" matTooltip="Eliminar">
+                <mat-icon>delete</mat-icon>
+              </button>
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="columns"></tr>
+          <tr mat-row *matRowDef="let row; columns: columns"></tr>
+        </table>
+      </div>
+
+      <mat-paginator [pageSizeOptions]="[10, 25, 50]" showFirstLastButtons></mat-paginator>
+    }
+  </div>
+</div>

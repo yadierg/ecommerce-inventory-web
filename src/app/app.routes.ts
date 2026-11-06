@@ -148,6 +148,26 @@ export const routes: Routes = [
         path: 'settings', 
         loadComponent: () => import('./features/settings/settings.component').then(m => m.SettingsComponent)
       },
+      {
+        path: 'materials',
+        loadComponent: () => import('./features/materials/materials-list/materials-list.component').then(m => m.MaterialsListComponent)
+      },
+      {
+        path: 'materials/new',
+        loadComponent: () => import('./features/materials/material-form/material-form.component').then(m => m.MaterialFormComponent)
+      },
+      {
+        path: 'materials/:id/edit',
+        loadComponent: () => import('./features/materials/material-form/material-form.component').then(m => m.MaterialFormComponent)
+      },
+       {
+        path: 'product-types',
+        loadComponent: () => import('./features/product-types/product-types-list/product-types-list.component').then(m => m.ProductTypesListComponent)
+      },
+      {
+        path: 'product-types/:id/attributes',
+        loadComponent: () => import('./features/product-types/attributes-list/attributes-list.component').then(m => m.AttributesListComponent)
+      },
     ],
   },
   { path: '**', redirectTo: 'dashboard' },

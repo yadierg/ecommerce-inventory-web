@@ -1,12 +1,44 @@
 <header class="header">
-  <!-- Botón Hamburguesa -->
   <button mat-icon-button (click)="onToggleSidebar()" class="menu-btn">
     <mat-icon>menu</mat-icon>
   </button>
 
-  <div class="search">
-    <mat-icon class="search-icon">search</mat-icon>
-    <input type="text" placeholder="Buscar..." class="search-input" />
+  <!-- 👇 BUSCADOR GLOBAL -->
+  <div class="search-container">
+    <mat-form-field appearance="outline" class="search-field">
+      <mat-icon matPrefix class="search-icon">search</mat-icon>
+      <input 
+        type="text" 
+        matInput 
+        placeholder="Buscar producto, orden, proveedor..." 
+        [formControl]="searchControl"
+        [matAutocomplete]="autoSearch"
+      />
+    </mat-form-field>
+
+    <mat-autocomplete 
+      #autoSearch="matAutocomplete" 
+      (optionSelected)="onSelectResult($event.option.value)"
+      class="search-dropdown"
+    >
+      @for (result of (searchResults$ | async); track result.id) {
+        <mat-option [value]="result">
+          <div class="result-item">
+            <div class="result-icon" [ngClass]="result.type">
+              <mat-icon>{{ result.icon }}</mat-icon>
+            </div>
+            <div class="result-info">
+              <strong>{{ result.title }}</strong>
+              <small>{{ result.subtitle }}</small>
+            </div>
+          </div>
+        </mat-option>
+      } @empty {
+        <mat-option disabled class="no-results">
+          Escribe al menos 2 letras para buscar...
+        </mat-option>
+      }
+    </mat-autocomplete>
   </div>
 
   <div class="spacer"></div>
