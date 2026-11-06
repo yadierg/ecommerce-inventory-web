@@ -1,0 +1,15 @@
+.page { max-width: 1000px; margin: 0 auto; padding: 24px; }
+.page-header { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 24px; }
+.page-title { font-size: 24px; font-weight: 700; color: var(--text-primary); margin: 0; }
+.page-subtitle { color: var(--text-secondary); margin: 4px 0 0; font-size: 14px; }
+.spinner-wrap { display: flex; justify-content: center; padding: 60px 0; }
+
+.form-card { margin-bottom: 20px; border-radius: var(--radius) !important; box-shadow: var(--shadow-sm) !important; background: var(--bg-card) !important; }
+mat-card-title { font-size: 16px !important; font-weight: 600 !important; color: var(--text-primary) !important; margin-bottom: 16px !important; }
+
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0 16px; }
+@media (max-width: 640px) { .grid-2 { grid-template-columns: 1fr; } }
+.full-width { width: 100%; }
+
+.toggles { display: flex; flex-direction: column; gap: 16px; margin: 8px 0; }
+.form-actions { display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--border); }

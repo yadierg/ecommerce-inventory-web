@@ -1,0 +1,55 @@
+.page { max-width: 1200px; margin: 0 auto; padding: 24px; }
+.page-header { margin-bottom: 24px; }
+.page-title { font-size: 24px; font-weight: 700; color: var(--text-primary); margin: 0; }
+.page-subtitle { color: var(--text-secondary); margin: 4px 0 0; font-size: 14px; }
+
+.grid-layout { display: grid; grid-template-columns: 350px 1fr; gap: 24px; align-items: start; }
+@media (max-width: 900px) { .grid-layout { grid-template-columns: 1fr; } }
+
+.form-card, .table-card {
+  border-radius: 12px !important; background: var(--bg-card) !important;
+  border: 1px solid var(--border);
+}
+
+.flex-col { display: flex; flex-direction: column; gap: 8px; }
+.full-width { width: 100%; }
+.mb-4 { margin-bottom: 16px; }
+.form-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 8px; }
+
+/* 👇 BARRA DE FILTROS */
+.filter-bar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
+}
+
+.search-field {
+  flex: 1;
+  min-width: 250px;
+  margin-bottom: -1.25em;
+}
+
+::ng-deep .filter-bar .mat-mdc-text-field-wrapper { height: 44px; }
+::ng-deep .filter-bar .mat-mdc-form-field-flex { align-items: center; }
+::ng-deep .filter-bar .mat-mdc-form-field-infix { padding-top: 10px !important; padding-bottom: 10px !important; min-height: 44px !important; }
+
+th.mat-mdc-header-cell { font-size: 12px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; }
+td.mat-mdc-cell { color: var(--text-primary); font-size: 14px; padding: 12px 16px !important; }
+.text-right { text-align: right; }
+.text-muted { color: var(--text-muted); }
+.small { font-size: 12px; }
+
+code { background: var(--bg-app); padding: 2px 6px; border-radius: 4px; font-size: 12px; color: var(--text-secondary); font-weight: 600; }
+
+.badge { padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 600; }
+.badge.active { background: #d1fae5; color: #065f46; }
+.badge.inactive { background: #fee2e2; color: #991b1b; }
+.badge.system { background: #e0e7ff; color: #3730a3; }
+.badge.custom { background: #fef3c7; color: #92400e; }
+
+.spinner-wrap { display: flex; justify-content: center; padding: 40px; }
+.empty { text-align: center; padding: 40px; color: var(--text-muted); }

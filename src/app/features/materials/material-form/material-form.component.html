@@ -1,0 +1,158 @@
+<div class="page">
+  <div class="page-header">
+    <a mat-icon-button routerLink="/materials" matTooltip="Volver">
+      <mat-icon>arrow_back</mat-icon>
+    </a>
+    <div>
+      <h1 class="page-title">{{ isEdit() ? 'Editar Material' : 'Nuevo Material' }}</h1>
+      <p class="page-subtitle">Completa la información técnica del material</p>
+    </div>
+  </div>
+
+  @if (loading()) {
+    <div class="spinner-wrap"><mat-spinner diameter="48" /></div>
+  } @else {
+    <form [formGroup]="form" (ngSubmit)="onSubmit()">
+      
+      <mat-card class="form-card">
+        <mat-card-header><mat-card-title>Información Básica</mat-card-title></mat-card-header>
+        <mat-card-content>
+          <div class="grid-2">
+            <mat-form-field appearance="outline">
+              <mat-label>SKU *</mat-label>
+              <input matInput formControlName="sku" [readonly]="isEdit()" />
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Nombre *</mat-label>
+              <input matInput formControlName="name" />
+            </mat-form-field>
+          </div>
+
+          <div class="grid-2">
+            <mat-form-field appearance="outline">
+              <mat-label>Tipo de Producto *</mat-label>
+              <mat-select formControlName="productTypeId">
+                @for (type of productTypes(); track type.id) {
+                  <mat-option [value]="type.id">{{ type.name }} ({{ type.code }})</mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Marca</mat-label>
+              <input matInput formControlName="brand" />
+            </mat-form-field>
+          </div>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Descripción</mat-label>
+            <textarea matInput formControlName="description" rows="2"></textarea>
+          </mat-form-field>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- 👇 ATRIBUTOS DINÁMICOS (EAV) -->
+      @if (attributes.length > 0) {
+        <mat-card class="form-card">
+          <mat-card-header><mat-card-title>Especificaciones Técnicas</mat-card-title></mat-card-header>
+          <mat-card-content>
+            <div class="grid-2" formArrayName="attributes">
+              @for (attr of attributes.controls; track $index; let i = $index) {
+                <div [formGroupName]="i">
+                  
+                  <!-- NUMBER -->
+                  @if (attr.get('attributeType')?.value === 'number') {
+                    <mat-form-field appearance="outline">
+                      <mat-label>{{ attr.get('attributeLabel')?.value }}</mat-label>
+                      <input matInput type="number" formControlName="attributeValue" />
+                      @if (attr.get('unit')?.value) { <span matSuffix>{{ attr.get('unit')?.value }}</span> }
+                    </mat-form-field>
+                  }
+
+                  <!-- STRING -->
+                  @if (attr.get('attributeType')?.value === 'string') {
+                    <mat-form-field appearance="outline">
+                      <mat-label>{{ attr.get('attributeLabel')?.value }}</mat-label>
+                      <input matInput type="text" formControlName="attributeValue" />
+                    </mat-form-field>
+                  }
+
+                  <!-- ENUM -->
+                  @if (attr.get('attributeType')?.value === 'enum') {
+                    <mat-form-field appearance="outline">
+                      <mat-label>{{ attr.get('attributeLabel')?.value }}</mat-label>
+                      <mat-select formControlName="attributeValue">
+                        <!-- Aquí necesitas buscar los valores del enum. Por simplicidad, los mostramos como texto libre si no tienes la lista, o puedes cargarlos desde la definición -->
+                        <mat-option value="COBRE">Cobre</mat-option>
+                        <mat-option value="ALUMINIO">Aluminio</mat-option>
+                        <mat-option value="ACERO">Acero</mat-option>
+                      </mat-select>
+                    </mat-form-field>
+                  }
+
+                  <!-- BOOLEAN -->
+                  @if (attr.get('attributeType')?.value === 'boolean') {
+                    <mat-slide-toggle formControlName="attributeValue" color="primary">
+                      {{ attr.get('attributeLabel')?.value }}
+                    </mat-slide-toggle>
+                  }
+
+                  <!-- DATE -->
+                  @if (attr.get('attributeType')?.value === 'date') {
+                    <mat-form-field appearance="outline">
+                      <mat-label>{{ attr.get('attributeLabel')?.value }}</mat-label>
+                      <input matInput type="date" formControlName="attributeValue" />
+                    </mat-form-field>
+                  }
+
+                </div>
+              }
+            </div>
+          </mat-card-content>
+        </mat-card>
+      }
+
+      <mat-card class="form-card">
+        <mat-card-header><mat-card-title>Inventario y Costos</mat-card-title></mat-card-header>
+        <mat-card-content>
+          <div class="grid-2">
+            <mat-form-field appearance="outline">
+              <mat-label>Costo Unitario</mat-label>
+              <input matInput type="number" formControlName="unitCost" />
+              <span matPrefix>$&nbsp;</span>
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Stock Mínimo</mat-label>
+              <input matInput type="number" formControlName="minStock" />
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Stock Máximo</mat-label>
+              <input matInput type="number" formControlName="maxStock" />
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Punto de Reorden</mat-label>
+              <input matInput type="number" formControlName="reorderPoint" />
+            </mat-form-field>
+          </div>
+
+          <div class="toggles">
+            <mat-slide-toggle formControlName="isActive" color="primary">Material Activo</mat-slide-toggle>
+            <mat-slide-toggle formControlName="isConsumable" color="primary">Es Consumible</mat-slide-toggle>
+            <mat-slide-toggle formControlName="isPurchasable" color="primary">Es Comprable</mat-slide-toggle>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <div class="form-actions">
+        <button mat-button type="button" routerLink="/materials">Cancelar</button>
+        <button mat-raised-button color="primary" type="submit" [disabled]="form.invalid || saving()">
+          @if (saving()) {
+            <mat-spinner diameter="20" />
+          } @else {
+            {{ isEdit() ? 'Guardar Cambios' : 'Crear Material' }}
+          }
+        </button>
+      </div>
+
+    </form>
+  }
+</div>

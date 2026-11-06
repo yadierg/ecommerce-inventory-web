@@ -1,5 +1,5 @@
 <aside class="sidebar">
-  <!-- Brand con SVGs -->
+  <!-- Brand -->
   <div class="brand">
     <!-- <img src="logo.svg" alt="Instelec Logo" class="brand-logo" /> -->
     <img src="nombre.svg" alt="Instelec" class="brand-name" />
@@ -7,11 +7,48 @@
 
   <nav class="nav">
     <p class="nav-section-label">MENÚ PRINCIPAL</p>
-    @for (item of navItems; track item.route) {
-      <a [routerLink]="item.route" routerLinkActive="active" class="nav-item">
-        <mat-icon class="nav-icon">{{ item.icon }}</mat-icon>
-        <span class="nav-label">{{ item.label }}</span>
-      </a>
+    
+    @for (item of navItems; track item.label) {
+      
+      <!-- Ítem con submenú (Acordeón) -->
+      @if (item.children) {
+        <div class="nav-group">
+          <button 
+            class="nav-item nav-group-header" 
+            [class.active]="isExpanded(item.label)"
+            (click)="toggleMenu(item.label)"
+          >
+            <mat-icon class="nav-icon">{{ item.icon }}</mat-icon>
+            <span class="nav-label">{{ item.label }}</span>
+            <mat-icon class="chevron" [class.rotate]="isExpanded(item.label)">
+              expand_more
+            </mat-icon>
+          </button>
+
+          <!-- Submenú -->
+          <div class="submenu" [class.open]="isExpanded(item.label)">
+            @for (child of item.children; track child.route) {
+              <a 
+                [routerLink]="child.route" 
+                routerLinkActive="active"
+                class="nav-item submenu-item"
+              >
+                <mat-icon class="nav-icon">{{ child.icon }}</mat-icon>
+                <span class="nav-label">{{ child.label }}</span>
+              </a>
+            }
+          </div>
+        </div>
+      } 
+      
+      <!-- Ítem normal (sin hijos) -->
+      @else if (item.route) {
+        <a [routerLink]="item.route" routerLinkActive="active" class="nav-item">
+          <mat-icon class="nav-icon">{{ item.icon }}</mat-icon>
+          <span class="nav-label">{{ item.label }}</span>
+        </a>
+      }
+      
     }
   </nav>
 
