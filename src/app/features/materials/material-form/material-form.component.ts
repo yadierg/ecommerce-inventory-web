@@ -17,6 +17,7 @@ import { ProductTypesService } from '../../../core/services/product-types.servic
 import { AttributeDefinitionsService } from '../../../core/services/attribute-definitions.service';
 import { NotificationService } from '../../../core/services/notification.service';
 import { ProductType, AttributeDefinition, AttributeDataType } from '../../../core/models/materials.models';
+import { MaterialEventsService } from '../../../core/services/material-events.service';
 
 @Component({
   selector: 'app-material-form',
@@ -37,6 +38,8 @@ export class MaterialFormComponent implements OnInit {
   private router = inject(Router);
   private route = inject(ActivatedRoute);
   private notification = inject(NotificationService);
+  private materialEvents = inject(MaterialEventsService);
+
 
   isEdit = signal(false);
   loading = signal(true);
@@ -173,7 +176,6 @@ export class MaterialFormComponent implements OnInit {
       isActive: formValue.isActive,
       isConsumable: formValue.isConsumable,
       isPurchasable: formValue.isPurchasable,
-      // Mapeamos los atributos al formato que espera el backend
       attributes: (formValue.attributes || []).map((a: any) => ({
         attributeKey: a.attributeKey,
         attributeLabel: a.attributeLabel,
@@ -188,8 +190,9 @@ export class MaterialFormComponent implements OnInit {
       : this.materialsSvc.create(payload);
 
     obs.subscribe({
-      next: () => {
+      next: (res) => {
         this.notification.success(this.id ? 'Material actualizado' : 'Material creado');
+        this.materialEvents.notifyMaterialCreated(); // 👈 Notificamos
         this.router.navigate(['/materials']);
       },
       error: (err) => {

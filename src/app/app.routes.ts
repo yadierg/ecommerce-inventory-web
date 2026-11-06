@@ -168,6 +168,10 @@ export const routes: Routes = [
         path: 'product-types/:id/attributes',
         loadComponent: () => import('./features/product-types/attributes-list/attributes-list.component').then(m => m.AttributesListComponent)
       },
+      {
+        path: 'materials/:id/prices',
+        loadComponent: () => import('./features/materials/material-prices/material-prices.component').then(m => m.MaterialPricesComponent)
+      },
     ],
   },
   { path: '**', redirectTo: 'dashboard' },
