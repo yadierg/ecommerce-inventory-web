@@ -1,7 +1,6 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
-import { FormBuilder, FormArray, ReactiveFormsModule, Validators, FormGroup } from '@angular/forms';
+import { FormBuilder, FormArray, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-//import { CurrencyPipe } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -15,8 +14,10 @@ import { MatDividerModule } from '@angular/material/divider';
 import { MaterialsService } from '../../../core/services/materials.service';
 import { ProductTypesService } from '../../../core/services/product-types.service';
 import { AttributeDefinitionsService } from '../../../core/services/attribute-definitions.service';
+import { CategoriesService } from '../../../core/services/categories.service';
+import { UnitsOfMeasureService, UnitOfMeasure } from '../../../core/services/units-of-measure.service';
 import { NotificationService } from '../../../core/services/notification.service';
-import { ProductType, AttributeDefinition, AttributeDataType } from '../../../core/models/materials.models';
+import { ProductType, AttributeDefinition, Category } from '../../../core/models/materials.models';
 
 @Component({
   selector: 'app-material-form',
@@ -34,6 +35,8 @@ export class MaterialFormComponent implements OnInit {
   private materialsSvc = inject(MaterialsService);
   private typesSvc = inject(ProductTypesService);
   private attrsSvc = inject(AttributeDefinitionsService);
+  private categoriesSvc = inject(CategoriesService);
+  private unitsSvc = inject(UnitsOfMeasureService);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
   private notification = inject(NotificationService);
@@ -43,15 +46,21 @@ export class MaterialFormComponent implements OnInit {
   saving = signal(false);
   private id: string | null = null;
 
+  // 👇 Guardamos los atributos actuales del material para reutilizarlos sin re-fetch
+  private currentAttributes: any[] = [];
+
   productTypes = signal<ProductType[]>([]);
+  categories = signal<Category[]>([]);
+  unitsOfMeasure = signal<UnitOfMeasure[]>([]);
   attributeDefinitions = signal<AttributeDefinition[]>([]);
 
   form = this.fb.group({
     sku: ['', Validators.required],
     name: ['', Validators.required],
     description: [''],
+    categoryId: [null as string | null],
     productTypeId: ['', Validators.required],
-    unitOfMeasureId: ['d15e484b-20ac-4396-a8f5-28eb565b044e', Validators.required], // Default: Metro (o el que uses)
+    unitOfMeasureId: ['', Validators.required],
     unitCost: [0],
     minStock: [0],
     maxStock: [null as number | null],
@@ -60,7 +69,7 @@ export class MaterialFormComponent implements OnInit {
     isActive: [true],
     isConsumable: [true],
     isPurchasable: [true],
-    attributes: this.fb.array([]) // 👈 FormArray dinámico
+    attributes: this.fb.array([])
   });
 
   get attributes(): FormArray {
@@ -68,19 +77,18 @@ export class MaterialFormComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.typesSvc.findActive().subscribe(data => {
-      this.productTypes.set(data);
-      
-      this.id = this.route.snapshot.paramMap.get('id');
-      if (this.id) {
-        this.isEdit.set(true);
-        this.loadMaterial(this.id);
-      } else {
-        this.loading.set(false);
-      }
-    });
+    this.typesSvc.findActive().subscribe(data => this.productTypes.set(data));
+    this.categoriesSvc.findAll().subscribe(data => this.categories.set(data));
+    this.unitsSvc.findActive().subscribe(data => this.unitsOfMeasure.set(data));
 
-    // Escuchar cambios en el tipo de producto para cargar atributos
+    this.id = this.route.snapshot.paramMap.get('id');
+    if (this.id) {
+      this.isEdit.set(true);
+      this.loadMaterial(this.id);
+    } else {
+      this.loading.set(false);
+    }
+
     this.form.get('productTypeId')?.valueChanges.subscribe(typeId => {
       if (typeId) {
         this.onProductTypeChange(typeId);
@@ -91,12 +99,16 @@ export class MaterialFormComponent implements OnInit {
   loadMaterial(id: string) {
     this.materialsSvc.findOne(id).subscribe({
       next: (material) => {
+        // 👇 Guardamos atributos para reusar en onProductTypeChange
+        this.currentAttributes = material.attributes ?? [];
+
         this.form.patchValue({
           sku: material.sku,
           name: material.name,
           description: material.description || '',
+          categoryId: material.categoryId || null,
           productTypeId: material.productTypeId || '',
-          unitOfMeasureId: material.unitOfMeasureId,
+          unitOfMeasureId: material.unitOfMeasureId || '',
           unitCost: Number(material.unitCost),
           minStock: material.minStock,
           maxStock: material.maxStock || null,
@@ -106,7 +118,6 @@ export class MaterialFormComponent implements OnInit {
           isConsumable: material.isConsumable,
           isPurchasable: material.isPurchasable
         });
-        // Los atributos se cargan en onProductTypeChange
         this.loading.set(false);
       },
       error: () => {
@@ -117,32 +128,24 @@ export class MaterialFormComponent implements OnInit {
   }
 
   onProductTypeChange(productTypeId: string) {
-    // 1. Obtenemos las definiciones (la estructura)
     this.attrsSvc.findByProductType(productTypeId).subscribe(defs => {
       this.attributeDefinitions.set(defs);
-      
-      // 2. Si estamos editando, tenemos que mezclar los valores actuales
-      if (this.isEdit() && this.id) {
-        this.materialsSvc.findOne(this.id).subscribe(mat => {
-          this.buildAttributesForm(defs, mat.attributes);
-        });
-      } else {
-        this.buildAttributesForm(defs, []);
-      }
+      // 👇 Usamos los atributos ya cargados (o [] si es creación)
+      this.buildAttributesForm(defs, this.currentAttributes);
     });
   }
 
   buildAttributesForm(defs: AttributeDefinition[], currentValues: any[] = []) {
     this.attributes.clear();
     defs.forEach(def => {
-      // Buscamos si el material ya tiene un valor para este atributo
       const existing = currentValues.find(a => a.attributeKey === def.key);
-      
+
       this.attributes.push(this.fb.group({
         attributeKey: [def.key],
         attributeLabel: [def.label],
         attributeType: [def.dataType],
         unit: [def.unit],
+        enumValues: [def.enumValues ?? []],   // 👈 NUEVO: opciones del enum
         attributeValue: [existing ? existing.attributeValue : ''],
         isRequired: [def.isRequired]
       }));
@@ -163,6 +166,7 @@ export class MaterialFormComponent implements OnInit {
       sku: formValue.sku,
       name: formValue.name,
       description: formValue.description,
+      categoryId: formValue.categoryId || undefined,
       productTypeId: formValue.productTypeId,
       unitOfMeasureId: formValue.unitOfMeasureId,
       unitCost: formValue.unitCost,
@@ -173,7 +177,6 @@ export class MaterialFormComponent implements OnInit {
       isActive: formValue.isActive,
       isConsumable: formValue.isConsumable,
       isPurchasable: formValue.isPurchasable,
-      // Mapeamos los atributos al formato que espera el backend
       attributes: (formValue.attributes || []).map((a: any) => ({
         attributeKey: a.attributeKey,
         attributeLabel: a.attributeLabel,
@@ -183,7 +186,7 @@ export class MaterialFormComponent implements OnInit {
       }))
     };
 
-    const obs = this.id 
+    const obs = this.id
       ? this.materialsSvc.update(this.id, payload)
       : this.materialsSvc.create(payload);
 

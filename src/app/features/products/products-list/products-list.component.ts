@@ -1,6 +1,6 @@
 import { Component, inject, OnInit, signal, computed } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { CurrencyPipe } from '@angular/common';
+//import { CurrencyPipe } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -15,6 +15,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 
 import { ProductsService } from '../../../core/services/products.service';
 import { CategoriesService } from '../../../core/services/categories.service';
+import { UnitsOfMeasureService, UnitOfMeasure } from '../../../core/services/units-of-measure.service'; // 👈 Añadido
 import { NotificationService } from '../../../core/services/notification.service';
 import { Product, Category } from '../../../core/models/product.model';
 import { ConfirmDialogComponent } from '../../../shared/confirm-dialog/confirm-dialog.component';
@@ -23,19 +24,10 @@ import { ConfirmDialogComponent } from '../../../shared/confirm-dialog/confirm-d
   selector: 'app-products-list',
   standalone: true,
   imports: [
-    ReactiveFormsModule, 
-    CurrencyPipe, 
-    MatCardModule, 
-    MatFormFieldModule,
-    MatInputModule, 
-    MatButtonModule, 
-    MatIconModule, 
-    MatTableModule,
-    MatSelectModule, 
-    MatSlideToggleModule, 
-    MatProgressSpinnerModule,
-    MatDialogModule, 
-    MatTooltipModule,
+    ReactiveFormsModule, MatCardModule, MatFormFieldModule,
+    MatInputModule, MatButtonModule, MatIconModule, MatTableModule,
+    MatSelectModule, MatSlideToggleModule, MatProgressSpinnerModule,
+    MatDialogModule, MatTooltipModule,
   ],
   templateUrl: './products-list.component.html',
   styleUrls: ['./products-list.component.scss']
@@ -43,23 +35,23 @@ import { ConfirmDialogComponent } from '../../../shared/confirm-dialog/confirm-d
 export class ProductsListComponent implements OnInit {
   private productsSvc = inject(ProductsService);
   private categoriesSvc = inject(CategoriesService);
+  private unitsSvc = inject(UnitsOfMeasureService); // 👈 Inyectado
   private fb = inject(FormBuilder);
   private notification = inject(NotificationService);
   private dialog = inject(MatDialog);
 
   products = signal<Product[]>([]);
   categories = signal<Category[]>([]);
+  unitsOfMeasure = signal<UnitOfMeasure[]>([]); // 👈 Nueva señal
   loading = signal(true);
   saving = signal(false);
   editMode = signal(false);
   currentId = signal<string | null>(null);
 
-  // Estado de los filtros
   searchQuery = signal('');
   categoryFilter = signal<string | null>(null);
   showInactive = signal(false);
 
-  // Lógica de filtrado
   filteredProducts = computed(() => {
     let result = this.products();
     const query = this.searchQuery().toLowerCase();
@@ -73,15 +65,8 @@ export class ProductsListComponent implements OnInit {
         (p.brand && p.brand.toLowerCase().includes(query))
       );
     }
-
-    if (catId) {
-      result = result.filter(p => p.categoryId === catId);
-    }
-
-    if (!inactive) {
-      result = result.filter(p => p.isActive);
-    }
-
+    if (catId) result = result.filter(p => p.categoryId === catId);
+    if (!inactive) result = result.filter(p => p.isActive);
     return result;
   });
 
@@ -95,6 +80,7 @@ export class ProductsListComponent implements OnInit {
     stock: [0],
     lowStockThreshold: [10],
     categoryId: [null as string | null],
+    unitOfMeasureId: ['', Validators.required], // 👈 Añadido
     brand: [''],
     description: [''],
     isActive: [true],
@@ -104,6 +90,7 @@ export class ProductsListComponent implements OnInit {
   ngOnInit() {
     this.loadProducts();
     this.categoriesSvc.findAll().subscribe(data => this.categories.set(data));
+    this.unitsSvc.findActive().subscribe(data => this.unitsOfMeasure.set(data)); // 👈 Cargar unidades
   }
 
   loadProducts() {
@@ -134,6 +121,7 @@ export class ProductsListComponent implements OnInit {
       stock: p.stock,
       lowStockThreshold: p.lowStockThreshold,
       categoryId: p.categoryId || null,
+      unitOfMeasureId: (p as any).unitOfMeasureId || '', // 👈 Cargar unidad
       brand: p.brand || '', 
       description: p.description || '',
       isActive: p.isActive, 

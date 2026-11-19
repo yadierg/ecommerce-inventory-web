@@ -257,3 +257,18 @@ export interface PaginatedResponse<T> {
     totalPages: number;
   };
 }
+
+// ============================================
+// CATEGORY (referencia)
+// ============================================
+export interface Category {
+  id: string;
+  tenantId: string;
+  name: string;
+  slug: string;
+  description?: string;
+  parentId?: string | null;
+  isActive: boolean;
+  isFeatured: boolean;
+  order: number;
+}

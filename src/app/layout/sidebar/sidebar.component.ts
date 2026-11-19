@@ -26,10 +26,10 @@ export class SidebarComponent {
       label: 'Catálogo',
       icon: 'inventory_2',
       children: [
-        { label: 'Categorías', icon: 'grid_view', route: '/categories' },
-        { label: 'Tipos de Producto', icon: 'category', route: '/product-types' },
-        { label: 'Materiales', icon: 'construction', route: '/materials' },
+        { label: 'Categorías de productos', icon: 'grid_view', route: '/categories' },
         { label: 'Productos', icon: 'shopping_bag', route: '/products' },
+        { label: 'Tipos de Materiales', icon: 'category', route: '/product-types' },
+        { label: 'Materiales', icon: 'construction', route: '/materials' },
       ]
     },
     {

@@ -1,5 +1,5 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormArray, FormBuilder, FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -43,7 +43,7 @@ export class AttributesListComponent implements OnInit {
   typeId: string | null = null;
   productType = signal<ProductType | null>(null);
   attributes = signal<AttributeDefinition[]>([]);
-  
+
   loading = signal(true);
   saving = signal(false);
   editMode = signal(false);
@@ -59,8 +59,28 @@ export class AttributesListComponent implements OnInit {
     dataType: [AttributeDataType.STRING, Validators.required],
     unit: [''],
     isRequired: [false],
-    orderIndex: [100]
+    orderIndex: [100],
+    enumValues: this.fb.array<FormControl<string>>([])
   });
+
+  // 👇 Helpers para el FormArray de opciones enum
+  get enumValuesArray(): FormArray<FormControl<string>> {
+    return this.form.get('enumValues') as FormArray<FormControl<string>>;
+  }
+
+  get isEnum(): boolean {
+    return this.form.get('dataType')?.value === AttributeDataType.ENUM;
+  }
+
+  addEnumValue(value = '') {
+    this.enumValuesArray.push(
+      this.fb.control(value, { nonNullable: true, validators: [Validators.required] })
+    );
+  }
+
+  removeEnumValue(index: number) {
+    this.enumValuesArray.removeAt(index);
+  }
 
   ngOnInit() {
     this.typeId = this.route.snapshot.paramMap.get('id');
@@ -88,6 +108,11 @@ export class AttributesListComponent implements OnInit {
   editAttribute(attr: AttributeDefinition) {
     this.editMode.set(true);
     this.currentId.set(attr.id);
+
+    // 👇 Limpiar y recargar las opciones enum existentes
+    this.enumValuesArray.clear();
+    (attr.enumValues ?? []).forEach(v => this.addEnumValue(v));
+
     this.form.patchValue({
       key: attr.key,
       label: attr.label,
@@ -102,53 +127,69 @@ export class AttributesListComponent implements OnInit {
   cancelEdit() {
     this.editMode.set(false);
     this.currentId.set(null);
+    this.enumValuesArray.clear();
     this.form.reset({ dataType: AttributeDataType.STRING, isRequired: false, orderIndex: 100 });
   }
 
-    onSubmit() {
-        if (this.form.invalid) {
-        this.form.markAllAsTouched();
-        return;
-        }
-
-        this.saving.set(true);
-        const formValue = this.form.value;
-
-        // 👇 Construimos el payload explícitamente con el tipo correcto
-        const payload: any = {
-        label: formValue.label,
-        dataType: formValue.dataType,
-        unit: formValue.unit || undefined,
-        isRequired: formValue.isRequired,
-        orderIndex: formValue.orderIndex,
-        };
-
-        if (this.editMode()) {
-        // En edición, la clave (key) no se puede cambiar
-        // No enviamos productTypeId
-        } else {
-        // En creación, añadimos la clave y el productTypeId
-        payload.key = formValue.key;
-        payload.productTypeId = this.typeId!;
-        }
-
-        const obs = this.currentId()
-        ? this.attrsSvc.update(this.currentId()!, payload)
-        : this.attrsSvc.create(payload);
-
-        obs.subscribe({
-        next: () => {
-            this.notification.success(this.editMode() ? 'Atributo actualizado' : 'Atributo creado');
-            this.cancelEdit();
-            this.loadAttributes();
-            this.saving.set(false);
-        },
-        error: (err) => {
-            this.saving.set(false);
-            this.notification.error(err?.error?.message || 'Error al guardar atributo');
-        }
-        });
+  onSubmit() {
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      return;
     }
+
+    const formValue = this.form.value;
+    const isEnum = formValue.dataType === AttributeDataType.ENUM;
+
+    // 👇 Limpiar y validar opciones del enum
+    const cleanedEnumValues = isEnum
+      ? (formValue.enumValues ?? [])
+          .map(v => (v ?? '').trim())
+          .filter(v => v.length > 0)
+      : null;
+
+    if (isEnum && (!cleanedEnumValues || cleanedEnumValues.length === 0)) {
+      this.notification.error('Debes agregar al menos una opción para el tipo Lista');
+      this.enumValuesArray.markAllAsTouched();
+      return;
+    }
+
+    this.saving.set(true);
+
+    const payload: any = {
+      label: formValue.label,
+      dataType: formValue.dataType,
+      unit: formValue.unit || undefined,
+      isRequired: formValue.isRequired,
+      orderIndex: formValue.orderIndex,
+      enumValues: cleanedEnumValues
+    };
+
+    if (this.editMode()) {
+      // En edición, la clave (key) no se puede cambiar
+      // No enviamos productTypeId
+    } else {
+      // En creación, añadimos la clave y el productTypeId
+      payload.key = formValue.key;
+      payload.productTypeId = this.typeId!;
+    }
+
+    const obs = this.currentId()
+      ? this.attrsSvc.update(this.currentId()!, payload)
+      : this.attrsSvc.create(payload);
+
+    obs.subscribe({
+      next: () => {
+        this.notification.success(this.editMode() ? 'Atributo actualizado' : 'Atributo creado');
+        this.cancelEdit();
+        this.loadAttributes();
+        this.saving.set(false);
+      },
+      error: (err) => {
+        this.saving.set(false);
+        this.notification.error(err?.error?.message || 'Error al guardar atributo');
+      }
+    });
+  }
 
   deleteAttribute(attr: AttributeDefinition) {
     const ref = this.dialog.open(ConfirmDialogComponent, {

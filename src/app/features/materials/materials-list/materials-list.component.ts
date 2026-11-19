@@ -1,8 +1,8 @@
 import { Component, inject, OnInit, signal, ViewChild, computed } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
-import { FormControl, ReactiveFormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
+import { ReactiveFormsModule } from '@angular/forms';
 import { CurrencyPipe, DecimalPipe, NgClass } from '@angular/common';
-import { MatTableDataSource, MatTableModule } from '@angular/material/table';
+import { MatTableModule } from '@angular/material/table';
 import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { MatSort, MatSortModule } from '@angular/material/sort';
 import { MatButtonModule } from '@angular/material/button';
@@ -45,7 +45,6 @@ import { ConfirmDialogComponent } from '../../../shared/confirm-dialog/confirm-d
 export class MaterialsListComponent implements OnInit {
   private materialsSvc = inject(MaterialsService);
   private productTypesSvc = inject(ProductTypesService);
-  private router = inject(Router);
   private dialog = inject(MatDialog);
   private notification = inject(NotificationService);
 
@@ -53,15 +52,18 @@ export class MaterialsListComponent implements OnInit {
   @ViewChild(MatSort) sort!: MatSort;
 
   loading = signal(true);
-  dataSource = new MatTableDataSource<Material>([]);
+  
+  // 👇 Usamos un signal para los materiales
+  materials = signal<Material[]>([]);
   productTypes = signal<ProductType[]>([]);
 
   // Filtros
   searchQuery = signal('');
   typeFilter = signal<string | null>(null);
 
+  // 👇 Lista filtrada basada en el signal de materiales
   filteredMaterials = computed(() => {
-    let result = this.dataSource.data;
+    let result = this.materials(); // 👈 Leemos el signal
     const query = this.searchQuery().toLowerCase();
     const typeId = this.typeFilter();
 
@@ -81,20 +83,19 @@ export class MaterialsListComponent implements OnInit {
 
   ngOnInit() {
     this.loadMaterialTypes();
-    this.loadMaterials();
+    this.load();
   }
 
   loadMaterialTypes() {
     this.productTypesSvc.findActive().subscribe(data => this.productTypes.set(data));
   }
 
-  loadMaterials() {
+  load() {
     this.loading.set(true);
     this.materialsSvc.findAll({ limit: 1000 }).subscribe({
       next: (res) => {
-        this.dataSource.data = res.data;
-        this.dataSource.paginator = this.paginator;
-        this.dataSource.sort = this.sort;
+        // 👇 Seteamos el signal con los datos
+        this.materials.set(res.data);
         this.loading.set(false);
       },
       error: (err) => {
@@ -122,12 +123,17 @@ export class MaterialsListComponent implements OnInit {
 
     ref.afterClosed().subscribe(ok => {
       if (!ok) return;
+      
       this.materialsSvc.remove(material.id).subscribe({
         next: () => {
           this.notification.success('Material eliminado');
-          this.loadMaterials();
+          
+          // 👇 LA MAGIA: Actualizamos el signal filtrando el material eliminado
+          this.materials.update(list => list.filter(m => m.id !== material.id));
         },
-        error: (err) => this.notification.error(err?.error?.message || 'Error al eliminar')
+        error: (err) => {
+          this.notification.error(err?.error?.message || 'Error al eliminar');
+        }
       });
     });
   }

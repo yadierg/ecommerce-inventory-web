@@ -1,0 +1,143 @@
+<div class="page">
+  <div class="page-header">
+    <a mat-icon-button [routerLink]="['/materials', materialId, 'edit']" matTooltip="Volver al Material">
+      <mat-icon>arrow_back</mat-icon>
+    </a>
+    <div>
+      <h1 class="page-title">Historial de Precios</h1>
+      <p class="page-subtitle">{{ material()?.name }} ({{ material()?.sku }})</p>
+    </div>
+  </div>
+
+  @if (loading()) {
+    <div class="spinner-wrap"><mat-spinner diameter="48" /></div>
+  } @else {
+    
+    <!-- Resumen de Costos -->
+    <div class="stats-grid">
+      <mat-card class="stat-card">
+        <mat-card-content>
+          <span class="stat-label">Costo Promedio (Ponderado)</span>
+          <span class="stat-value primary">{{ material()?.averageCost | currency }}</span>
+        </mat-card-content>
+      </mat-card>
+      
+      <mat-card class="stat-card">
+        <mat-card-content>
+          <span class="stat-label">Último Costo de Compra</span>
+          <span class="stat-value">{{ material()?.lastPurchaseCost | currency }}</span>
+        </mat-card-content>
+      </mat-card>
+
+      @if (stats(); as s) {
+        <mat-card class="stat-card">
+          <mat-card-content>
+            <span class="stat-label">Costo Mínimo</span>
+            <span class="stat-value success">{{ s.minCost | currency }}</span>
+          </mat-card-content>
+        </mat-card>
+        <mat-card class="stat-card">
+          <mat-card-content>
+            <span class="stat-label">Costo Máximo</span>
+            <span class="stat-value danger">{{ s.maxCost | currency }}</span>
+          </mat-card-content>
+        </mat-card>
+      }
+    </div>
+
+    <div class="grid-layout">
+      <!-- Formulario para Registrar Compra -->
+      <mat-card class="form-card">
+        <mat-card-header>
+          <mat-card-title>Registrar Compra</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <form [formGroup]="form" (ngSubmit)="onSubmit()" class="flex-col">
+            
+            <div class="grid-2">
+              <mat-form-field appearance="outline">
+                <mat-label>Costo Unitario *</mat-label>
+                <input matInput type="number" formControlName="unitCost" />
+                <span matPrefix>$&nbsp;</span>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>Cantidad *</mat-label>
+                <input matInput type="number" formControlName="quantity" />
+              </mat-form-field>
+            </div>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Fecha de Compra *</mat-label>
+              <input matInput [matDatepicker]="picker" formControlName="purchaseDate" />
+              <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+              <mat-datepicker #picker></mat-datepicker>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Notas / Referencia</mat-label>
+              <textarea matInput formControlName="notes" rows="2" placeholder="Ej. Factura #123"></textarea>
+            </mat-form-field>
+
+            <button mat-raised-button color="primary" type="submit" [disabled]="form.invalid || saving()">
+              @if (saving()) {
+                <mat-spinner diameter="20" />
+              } @else {
+                Registrar Compra
+              }
+            </button>
+          </form>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Tabla de Historial -->
+      <mat-card class="table-card">
+        <mat-card-content>
+          @if (prices().length === 0) {
+            <div class="empty">No hay compras registradas para este material.</div>
+          } @else {
+            <table mat-table [dataSource]="prices()" class="full-width">
+              
+              <ng-container matColumnDef="date">
+                <th mat-header-cell *matHeaderCellDef>Fecha</th>
+                <td mat-cell *matCellDef="let p">{{ p.purchaseDate | date: 'dd MMM yyyy' }}</td>
+              </ng-container>
+
+              <ng-container matColumnDef="supplier">
+                <th mat-header-cell *matHeaderCellDef>Proveedor</th>
+                <td mat-cell *matCellDef="let p">{{ p.supplier?.name || '—' }}</td>
+              </ng-container>
+
+              <ng-container matColumnDef="quantity">
+                <th mat-header-cell *matHeaderCellDef class="text-right">Cantidad</th>
+                <td mat-cell *matCellDef="let p" class="text-right">{{ p.quantity | number }}</td>
+              </ng-container>
+
+              <ng-container matColumnDef="unitCost">
+                <th mat-header-cell *matHeaderCellDef class="text-right">Costo Unit.</th>
+                <td mat-cell *matCellDef="let p" class="text-right"><strong>{{ p.unitCost | currency }}</strong></td>
+              </ng-container>
+
+              <ng-container matColumnDef="total">
+                <th mat-header-cell *matHeaderCellDef class="text-right">Total</th>
+                <td mat-cell *matCellDef="let p" class="text-right">{{ (p.unitCost * p.quantity) | currency }}</td>
+              </ng-container>
+
+              <ng-container matColumnDef="actions">
+                <th mat-header-cell *matHeaderCellDef class="text-right"></th>
+                <td mat-cell *matCellDef="let p" class="text-right">
+                  <button mat-icon-button color="warn" (click)="deletePrice(p)" matTooltip="Eliminar registro">
+                    <mat-icon>delete</mat-icon>
+                  </button>
+                </td>
+              </ng-container>
+
+              <tr mat-header-row *matHeaderRowDef="columns"></tr>
+              <tr mat-row *matRowDef="let row; columns: columns"></tr>
+            </table>
+          }
+        </mat-card-content>
+      </mat-card>
+    </div>
+  }
+</div>

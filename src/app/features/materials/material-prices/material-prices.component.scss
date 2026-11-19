@@ -1,0 +1,68 @@
+.page { max-width: 1200px; margin: 0 auto; padding: 24px; }
+.page-header { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 24px; }
+.page-title { font-size: 24px; font-weight: 700; color: var(--text-primary); margin: 0; }
+.page-subtitle { color: var(--text-secondary); margin: 4px 0 0; font-size: 14px; }
+.spinner-wrap { display: flex; justify-content: center; padding: 60px 0; }
+
+/* Stats Grid */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.stat-card {
+  border-radius: 12px !important;
+  background: var(--bg-card) !important;
+  border: 1px solid var(--border);
+}
+
+.stat-card mat-card-content {
+  display: flex;
+  flex-direction: column;
+  padding: 16px !important;
+}
+
+.stat-label {
+  font-size: 12px;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.stat-value {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.stat-value.primary { color: var(--brand-red); }
+.stat-value.success { color: #10b981; }
+.stat-value.danger { color: #ef4444; }
+
+/* Layout */
+.grid-layout {
+  display: grid;
+  grid-template-columns: 350px 1fr;
+  gap: 24px;
+  align-items: start;
+}
+@media (max-width: 1024px) { .grid-layout { grid-template-columns: 1fr; } }
+
+.form-card, .table-card {
+  border-radius: 12px !important;
+  background: var(--bg-card) !important;
+  border: 1px solid var(--border);
+}
+
+.flex-col { display: flex; flex-direction: column; gap: 8px; }
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.full-width { width: 100%; }
+.text-right { text-align: right; }
+
+th.mat-mdc-header-cell { font-size: 12px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; }
+td.mat-mdc-cell { color: var(--text-primary); font-size: 14px; padding: 12px 16px !important; }
+.empty { text-align: center; padding: 40px; color: var(--text-muted); }
