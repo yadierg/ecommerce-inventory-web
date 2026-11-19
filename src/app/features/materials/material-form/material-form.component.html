@@ -13,7 +13,7 @@
     <div class="spinner-wrap"><mat-spinner diameter="48" /></div>
   } @else {
     <form [formGroup]="form" (ngSubmit)="onSubmit()">
-      
+
       <mat-card class="form-card">
         <mat-card-header><mat-card-title>Información Básica</mat-card-title></mat-card-header>
         <mat-card-content>
@@ -37,6 +37,19 @@
                 }
               </mat-select>
             </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Categoría</mat-label>
+              <mat-select formControlName="categoryId">
+                <mat-option [value]="null">Sin categoría</mat-option>
+                @for (cat of categories(); track cat.id) {
+                  <mat-option [value]="cat.id">{{ cat.name }}</mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+          </div>
+
+          <div class="grid-2">
             <mat-form-field appearance="outline">
               <mat-label>Marca</mat-label>
               <input matInput formControlName="brand" />
@@ -50,7 +63,6 @@
         </mat-card-content>
       </mat-card>
 
-      <!-- 👇 ATRIBUTOS DINÁMICOS (EAV) -->
       @if (attributes.length > 0) {
         <mat-card class="form-card">
           <mat-card-header><mat-card-title>Especificaciones Técnicas</mat-card-title></mat-card-header>
@@ -58,8 +70,6 @@
             <div class="grid-2" formArrayName="attributes">
               @for (attr of attributes.controls; track $index; let i = $index) {
                 <div [formGroupName]="i">
-                  
-                  <!-- NUMBER -->
                   @if (attr.get('attributeType')?.value === 'number') {
                     <mat-form-field appearance="outline">
                       <mat-label>{{ attr.get('attributeLabel')?.value }}</mat-label>
@@ -67,43 +77,33 @@
                       @if (attr.get('unit')?.value) { <span matSuffix>{{ attr.get('unit')?.value }}</span> }
                     </mat-form-field>
                   }
-
-                  <!-- STRING -->
                   @if (attr.get('attributeType')?.value === 'string') {
                     <mat-form-field appearance="outline">
                       <mat-label>{{ attr.get('attributeLabel')?.value }}</mat-label>
                       <input matInput type="text" formControlName="attributeValue" />
                     </mat-form-field>
                   }
-
-                  <!-- ENUM -->
                   @if (attr.get('attributeType')?.value === 'enum') {
                     <mat-form-field appearance="outline">
                       <mat-label>{{ attr.get('attributeLabel')?.value }}</mat-label>
                       <mat-select formControlName="attributeValue">
-                        <!-- Aquí necesitas buscar los valores del enum. Por simplicidad, los mostramos como texto libre si no tienes la lista, o puedes cargarlos desde la definición -->
-                        <mat-option value="COBRE">Cobre</mat-option>
-                        <mat-option value="ALUMINIO">Aluminio</mat-option>
-                        <mat-option value="ACERO">Acero</mat-option>
+                        @for (opt of attr.get('enumValues')?.value; track opt) {
+                          <mat-option [value]="opt">{{ opt }}</mat-option>
+                        }
                       </mat-select>
                     </mat-form-field>
                   }
-
-                  <!-- BOOLEAN -->
                   @if (attr.get('attributeType')?.value === 'boolean') {
                     <mat-slide-toggle formControlName="attributeValue" color="primary">
                       {{ attr.get('attributeLabel')?.value }}
                     </mat-slide-toggle>
                   }
-
-                  <!-- DATE -->
                   @if (attr.get('attributeType')?.value === 'date') {
                     <mat-form-field appearance="outline">
                       <mat-label>{{ attr.get('attributeLabel')?.value }}</mat-label>
                       <input matInput type="date" formControlName="attributeValue" />
                     </mat-form-field>
                   }
-
                 </div>
               }
             </div>
@@ -116,10 +116,22 @@
         <mat-card-content>
           <div class="grid-2">
             <mat-form-field appearance="outline">
+              <mat-label>Unidad de Medida *</mat-label>
+              <mat-select formControlName="unitOfMeasureId">
+                @for (unit of unitsOfMeasure(); track unit.id) {
+                  <mat-option [value]="unit.id">{{ unit.name }} ({{ unit.abbreviation }})</mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
               <mat-label>Costo Unitario</mat-label>
               <input matInput type="number" formControlName="unitCost" />
               <span matPrefix>$&nbsp;</span>
             </mat-form-field>
+          </div>
+
+          <div class="grid-2">
             <mat-form-field appearance="outline">
               <mat-label>Stock Mínimo</mat-label>
               <input matInput type="number" formControlName="minStock" />
@@ -128,6 +140,9 @@
               <mat-label>Stock Máximo</mat-label>
               <input matInput type="number" formControlName="maxStock" />
             </mat-form-field>
+          </div>
+
+          <div class="grid-2">
             <mat-form-field appearance="outline">
               <mat-label>Punto de Reorden</mat-label>
               <input matInput type="number" formControlName="reorderPoint" />

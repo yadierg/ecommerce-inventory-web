@@ -17,7 +17,7 @@
       </mat-card-header>
       <mat-card-content>
         <form [formGroup]="form" (ngSubmit)="onSubmit()" class="flex-col">
-          
+
           <mat-form-field appearance="outline">
             <mat-label>Clave * (Ej: potencia, seccion)</mat-label>
             <input matInput formControlName="key" [readonly]="editMode()" />
@@ -39,6 +39,40 @@
               <mat-option value="enum">Lista (Enum)</mat-option>
             </mat-select>
           </mat-form-field>
+
+          <!-- 👇 OPCIONES DE LA LISTA (solo si es enum) -->
+          @if (isEnum) {
+            <div class="enum-section">
+              <div class="enum-header">
+                <span class="enum-label">Opciones de la lista *</span>
+                <button mat-stroked-button type="button" color="primary" (click)="addEnumValue()">
+                  <mat-icon>add</mat-icon> Agregar opción
+                </button>
+              </div>
+
+              @if (enumValuesArray.length === 0) {
+                <p class="text-muted small">Agrega al menos una opción (ej: 10A, 16A, 20A).</p>
+              }
+
+              <div formArrayName="enumValues" class="enum-list">
+                @for (ctrl of enumValuesArray.controls; track $index; let i = $index) {
+                  <div class="enum-row">
+                    <mat-form-field appearance="outline" class="enum-field">
+                      <mat-label>Opción {{ i + 1 }}</mat-label>
+                      <input matInput [formControlName]="i" placeholder="Ej: Monofásico" />
+                      @if (ctrl.invalid && ctrl.touched) {
+                        <mat-error>La opción no puede estar vacía</mat-error>
+                      }
+                    </mat-form-field>
+                    <button mat-icon-button color="warn" type="button"
+                            (click)="removeEnumValue(i)" matTooltip="Eliminar opción">
+                      <mat-icon>delete</mat-icon>
+                    </button>
+                  </div>
+                }
+              </div>
+            </div>
+          }
 
           <mat-form-field appearance="outline">
             <mat-label>Unidad (Ej: W, V, mm²)</mat-label>
@@ -79,7 +113,7 @@
           <div class="empty">Este tipo de producto no tiene atributos aún.</div>
         } @else {
           <table mat-table [dataSource]="attributes()" class="full-width">
-            
+
             <ng-container matColumnDef="label">
               <th mat-header-cell *matHeaderCellDef>Etiqueta</th>
               <td mat-cell *matCellDef="let a"><strong>{{ a.label }}</strong></td>
@@ -95,6 +129,9 @@
               <td mat-cell *matCellDef="let a">
                 <span class="badge">{{ a.dataType }}</span>
                 @if (a.unit) { <span class="text-muted small">({{ a.unit }})</span> }
+                @if (a.dataType === 'enum' && a.enumValues?.length) {
+                  <div class="text-muted small">Opciones: {{ a.enumValues!.join(', ') }}</div>
+                }
               </td>
             </ng-container>
 
